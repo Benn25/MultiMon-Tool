@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="description" content="Project page for Dual Monitor Tools." />
+<meta name="keywords" content="Dual Monitor Tools, wallpaper, wall paper, background, multi, display" />
+<meta name="author" content="Gerald Evans" />
+<link rel="STYLESHEET" type="text/css" href="DualMonitorTools.css" />
+<title>Dual Monitor Tools - DMT Wallpaper Changer</title>
+</head>
+
+<body>
+	
+	<div id="page">
+
+		<div id="header">
+			<div id="header-logo">
+				<a href="index.html">
+					<img src="Images/dual_96_48.png" alt="Dual Monitor Tools" />
+				</a>
+			</div>
+
+			<div id="header-title">
+				<p class="HdrTitleBig">
+				Dual Monitor Tools
+				</p>
+			</div>
+		</div>
+
+		<div id="body">
+		<div id="navigation">
+			<span class="MenuTop"></span>
+			<a href="index.html" class="MenuItem">Home</a>
+			<a href="history.html" class="MenuItem">History</a>
+			<a href="download.html" class="MenuItem">Download</a>
+			<a href="development.html" class="MenuItem">Development</a>
+			<br />
+
+			<span class="MenuHdr">Tools</span>
+			<a href="dmt.html" class="MenuItem">DMT</a>
+			<a href="dmt_general.html" class="MenuItem">DMT - General</a>
+			<a href="dmt_cursor.html" class="MenuItem">DMT - Cursor</a>
+			<a href="dmt_launcher.html" class="MenuItem">DMT - Launcher</a>
+			<a href="dmt_snap.html" class="MenuItem">DMT - Snap</a>
+			<a href="dmt_swapscreen.html" class="MenuItem">DMT - Swap Screen</a>
+			<span class="CurPage">DMT - Wallpaper Changer</span>
+			<a href="dmt_screensaver.html" class="MenuItem">DMT Screen Saver</a>
+			<a href="dualwallpaper.html" class="MenuItem">Dual Wallpaper</a>
+			<br />
+
+			<a href="http://sourceforge.net/projects/dualmonitortool">
+				<img src="http://sflogo.sourceforge.net/sflogo.php?group_id=252267&amp;type=2" width="125" height="37" alt="SourceForge.net Logo"/>
+			</a>
+		</div>
+
+<div id="content">
+
+<p class="AppTitle">
+	<img src="Images/dmt_wallpaperchanger_48_24.png" class="AppLogo" alt="DMT Wallpaper Changer" />
+	DMT Wallpaper Changer
+</p>
+
+<p>Wallpaper Changer will routinely change your Windows wallpaper using a variety of sources for images.</p>
+
+<p class="SubHeading">'General' options</p>
+
+<img src="Images/dmt_wallpaperchanger_general.png" alt="Wallpaper Changer general" />
+
+<p>The first few items allow you to specify when and how often you want the wallpaper changed.</p>
+<p>'Multi Monitor' allows you to specify how multiple monitors should be treated.  The available options are:</p>
+<ul>
+	<li>One image stretched over all monitors.</li>
+	<li>Same image on each monitor.</li>
+	<li>Different image on each monitor (all changed together).</li>
+	<li>Different image on each monitor (only one changed at a time).
+	Initially this will update the image on all of the monitors, but after that whenever it is time to update the wallpaper,
+	it will just update one monitor at a time in turn.
+	</li>
+</ul>
+
+<p>If the image size is not the same size as the rectangle enclosing all of the selected screens, 
+then the 'Fit' check boxes determines any scaling that need to be applied to the image.</p>
+
+<p>'Output wallpaper format' specifies the image file format used to tell Windows the wallpaper to use. The available options are:</p>
+<ul>
+	<li>BMP: This is a lossless format, but internally Windows will convert this to a JPEG image with a poor image quality level.  Older versions of Windows like XP, only support this format.</li>
+	<li>PNG: Another lossless format, but Windows has a limit to the size of this image file and if the file exceeds this, then the wallpaper will not be displayed.  This can be problematic if you have hi-res monitors or a lot of monitors.</li>
+	<li>JPEG: Although this uses lossy compression, the compression/image quality can be controlled with a quality of 100 resulting in the best image quality.</li>
+</ul>
+
+<p>Initially no providers (of images) are set up, so click on the 'Providers' options to add/edit/delete providers.</p>
+
+<p class="SubHeading">'Properties' options</p>
+
+<img src="Images/dmt_wallpaperchanger_properties.png" alt="Wallpaper Changer properties" />
+
+<p>Once DMT has generated a wallpaper, this will show the source and any available details of the image(s) used.</p>
+
+<p class="SubHeading">'Providers' options</p>
+
+<img src="Images/dmt_wallpaperchanger_providers.png" alt="Wallpaper Changer providers" />
+
+<p>The weight will indicate the frequency that provider should be used, with the higher the value, the more often it is used.
+So if you have one provider with a weight of 1 and another with a weight of 4, then you are 4 times as likely for an image
+to be chosen from the provider with a weight of 4 than from the provider with a weight of 1.</p>
+
+<p>If you use a provider that takes images from an external source, please respect any terms and conditions they may have.</p>
+
+<p>The providers currently supported are:</p>
+
+<p class="SubHeading">Provider - Local Disk</p>
+
+<img src="Images/dmt_wallpaperchanger_local_disk.png" alt="Local Disk provider" />
+
+<p>Provides images saved in a folder (with an option to look in sub-folders) on an attached drive. 
+You can also specify different directories for individual monitors and for any monitors in portrait orientation.</p>
+	
+	
+<p class="SubHeading">Provider - List</p>
+
+<img src="Images/dmt_wallpaperchanger_list.png" alt="List provider" />
+
+<p>Provides images specified in a text file, one per line.  These can be full paths of files on your local machine or network,
+or they can be URLs to access images on the Internet.</p>
+
+<p>You can use the 'Auto Generate' button to create a text file of all images located within a given folder.</p>
+
+<p>Unlike the other providers, this provider has the ability to remember your position in the list between shutdowns. To do this, a file will be created in the DmtWallpaperPositions folder within your DMT settings folder.</p>
+	
+	
+<p class="SubHeading">Provider - Flickr</p>
+
+<img src="Images/dmt_wallpaperchanger_flickr.png" alt="Flickr provider" />
+
+<p>Provides images from <a href="https://www.flickr.com/" target="_blank">www.flickr.com</a>.</p>
+
+<p>To download images from Flickr, you will need to obtain an API Key from Flickr.</p>
+
+<p>To obtain the API key, visit <a href="https://www.flickr.com/services/api/misc.api_keys.html" target="_blank">https://www.flickr.com/services/api/misc.api_keys.html</a>
+and click on the "Apply for your key online now" link.  You will need a Flickr or Yahoo account to do this.
+Then click on the "APPLY FOR A NON-COMMERCIAL KEY" button. For the name of the app, enter "DMT" and for the details enter "For use with the Dual Monitor Tools open source application".
+When you have the key, you can select flickr as a provider from DMT's list of providers and paste the key into last field of the above dialog.</p>
+
+	
+<p class="SubHeading">Provider - Unsplash</p>
+
+<img src="Images/dmt_wallpaperchanger_unsplash.png" alt="Unsplash provider" />
+
+<p>Provides images from <a href="http://www.unsplash.com" target="_blank">www.unsplash.com</a>.</p>
+	
+<p>Please see their <a href="https://unsplash.com/terms" target="_blank">terms and conditions</a> on the use of these images
+	and in particular please note that the usage is restricted to persons who are at least 18 years old.</p>
+	
+
+<p class="SubHeading">Provider - bing</p>
+
+<img src="Images/dmt_wallpaperchanger_bing.png" alt="Bing provider" />
+
+<p>Gets the daily wallpaper from <a href="http://www.bing.com" target="_blank">www.bing.com</a>.</p>
+	
+<p>Thanks to Mario D'Amico for providing the initial code for this.  As the wallpaper only changes once per day, DMT caches the wallpaper to prevent unnecessary requests being sent to Bing.</p>
+
+
+<p class="SubHeading">Provider - URL</p>
+
+<img src="Images/dmt_wallpaperchanger_url.png" alt="URL provider" />
+
+<p>Provides images from the given URL. This works best for URLs that return a different
+	random image each time they are requested.</p>
+
+	
+<p class="SubHeading">Provider - Random Shapes</p>
+
+<img src="Images/dmt_wallpaperchanger_random.png" alt="URL provider" />
+
+<p>Generates images composed of random shapes.</p>
+
+
+<p class="SubHeading">Supported Image File Formats</p>
+
+<p>BMP, GIF, JPEG, PNG and TIFF image formats are supported.  Any other format will need to be changed to one of these before it can be used by the wallpaper changer.</p>
+
+<p class="SubHeading">Windows 10 File Explorer bug</p>
+
+<p>If you find when you are using File Explorer that it scrolls to the top whenever the wallpaper is changed, this is due to a bug in Windows 10.  It can be avoided by turning off "Automatically pick an accent colour from my background" in the "Colours" section of the personalise settings.  (Right click on the Windows background to get at this.)</p>
+
+
+</div>
+
+</div>
+	<div id="footer">
+		<div id="footer-left">
+		</div>
+		<div id="footer-right">
+		last updated 19 Nov 2026
+		</div>
+	</div>
+</div>
+</body>
+</html>
+

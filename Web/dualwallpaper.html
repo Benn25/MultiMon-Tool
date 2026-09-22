@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="description" content="Project page for Dual Monitor Tools." />
+<meta name="keywords" content="Dual Monitor Tools, wallpaper, wall paper, background, multi, display" />
+<meta name="author" content="Gerald Evans" />
+<link rel="STYLESHEET" type="text/css" href="DualMonitorTools.css" />
+<title>Dual Monitor Tools - Dual Wallpaper </title>
+</head>
+
+<body>
+	
+	<div id="page">
+
+		<div id="header">
+			<div id="header-logo">
+				<a href="index.html">
+					<img src="Images/dual_96_48.png" alt="Dual Monitor Tools" />
+				</a>
+			</div>
+
+			<div id="header-title">
+				<p class="HdrTitleBig">
+				Dual Monitor Tools
+				</p>
+			</div>
+		</div>
+
+		<div id="body">
+		<div id="navigation">
+			<span class="MenuTop"></span>
+			<a href="index.html" class="MenuItem">Home</a>
+			<a href="history.html" class="MenuItem">History</a>
+			<a href="download.html" class="MenuItem">Download</a>
+			<a href="development.html" class="MenuItem">Development</a>
+			<br />
+
+			<span class="MenuHdr">Tools</span>
+			<a href="dmt.html" class="MenuItem">DMT</a>
+			<a href="dmt_general.html" class="MenuItem">DMT - General</a>
+			<a href="dmt_cursor.html" class="MenuItem">DMT - Cursor</a>
+			<a href="dmt_launcher.html" class="MenuItem">DMT - Launcher</a>
+			<a href="dmt_snap.html" class="MenuItem">DMT - Snap</a>
+			<a href="dmt_swapscreen.html" class="MenuItem">DMT - Swap Screen</a>
+			<a href="dmt_wallpaperchanger.html" class="MenuItem">DMT - Wallpaper Changer</a>
+			<a href="dmt_screensaver.html" class="MenuItem">DMT Screen Saver</a>
+			<span class="CurPage">Dual Wallpaper</span>
+			<br />
+
+			<a href="http://sourceforge.net/projects/dualmonitortool">
+				<img src="http://sflogo.sourceforge.net/sflogo.php?group_id=252267&amp;type=2" width="125" height="37" alt="SourceForge.net Logo"/>
+			</a>
+		</div>
+
+<div id="content">
+
+<p class="AppTitle">
+	<img src="Images/DualWallpaper_48_24.png" class="AppLogo" alt="Dual Wallpaper" />
+	Dual Wallpaper
+</p>
+
+<p>Dual Wallpaper simplifies the process of using images as wallpaper on multiple monitor setups.</p>
+
+<p>You can have a single image which is spread across all of your monitors, or you can have different images on each monitor, or if you have enough monitors, you could say have an image spread across 2 of your monitors with another image displayed on the third monitor.</p>
+
+<p>It also correctly sets the wallpaper when your primary monitor is not
+your leftmost or topmost monitor.</p>
+
+<p class="SubHeading">Usage</p>
+
+<p>When DualWallpaper.exe is run it will look similar to the following.</p>
+<img src="Images/DualWallpaper1.png" alt="DW1" />
+<p>The area at the top of the window displays a representation of how your monitors are arranged logically. It makes sense if your monitors are also arranged physically like this as well, but this may not always be the case.</p>
+<p>The screen number is displayed on each monitor, and the primary monitor also has a 'P' after the screen number.</p>
+<p>It is possible to select a particular monitor by clicking on its representation in this window.  
+You can also select multiple monitors by holding down the control key when you click on the monitors.
+The selected monitors are highlighted with a yellow border.</p>
+
+
+<p>To add an image to one or more monitors, first select those monitors and then click on the browse button to choose an existing image file to use.  
+When you have done this, a thumbnail of the image is shown to the right of the 'Browse' button.</p>
+
+<p>If the image size is not the same size as the rectangle enclosing all of the selected screens, 
+then the 'Fit' combo box determines any scaling that need to be applied to the image.  The available options are:</p>
+<ul>
+	<li>Center image and do not stretch.  
+	This is the default option and will result in each pixel in the image mapping to a single pixel on the screen.
+	If your image is larger than the selected monitors, then the image will be clipped.
+	If The image is smaller than the selected monitors, then a border will be displayed around the image.</li>
+	<li>Stretch ignoring aspect ratio. 
+	This will stretch or shrink so that the whole image is displayed occupying the whole area of the selected monitors.</li>
+	<li>Over stretch and clip to maintain aspect ratio.</li>
+	<li>Under stretch and add bars to maintain aspect ratio.</li>
+</ul>
+<p>You can then click the 'Add Image' button which will add the image to the selected monitors in the preview like the following where a single image was applied to 2 monitors using the over stretch fit option.</p>
+<img src="Images/DualWallpaper2.png" alt="DW2" />
+
+<p>If you have further monitors, then you can select these and repeat the process using either the same image or a different image.</p>
+
+<p>If you wish to move the image around, or zoom in or out, then select the 'Move/Zoom Image' tab.</p>
+
+<p>For example in the above image, you may want more of the sky visible, so if you press the up button in the 'Move Image' box a couple of times, you will end up with the following:</p>
+<img src="Images/DualWallpaper3.png" alt="DW3" />
+
+<p>When you are happy with the preview, you can click the 'Set Wallpaper' button at which point you should see your new wallpaper displayed on your desktop.</p>
+<p>When you use the 'Set Wallpaper' button, the wallpaper image is saved to DmtWallpaper.bmp.  This is the same location as used by the wallpaper changer in DMT.</p>
+
+<p class="SubHeading">Command line usage</p>
+
+<p>Dual Wallpaper can be run from the command line to set the wallpaper without any graphical user interface so may be used from a batch file.  Usage is in the form:<br/>
+<b>&lt;Path to DualWallpaer executable&gt; [options] &lt;Path to image file&gt;</b>
+</p>
+<p>
+The current options are:<br />
+<b>-?</b> show usage<br />
+<b>-v</b> show version<br />
+<b>-so</b> over stretch image to fit, maintaining aspect ratio (default)<br />
+<b>-su</b> under stretch image to fit, maintaining aspect ratio<br />
+<b>-sc</b> center image with no stretching<br />
+<b>-sf</b> stretch to fit in both directions<br />
+</p>
+
+</div>
+
+</div>
+	<div id="footer">
+		<div id="footer-left">
+		</div>
+		<div id="footer-right">
+		last updated 30 Dec 2016
+		</div>
+	</div>
+</div>
+</body>
+</html>
+

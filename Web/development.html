@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="description" content="Project page for Dual Monitor Tools." />
+<meta name="keywords" content="Dual Monitor Tools, swap screen, swapscreen, multi, screen, display" />
+<meta name="author" content="Gerald Evans" />
+<link rel="STYLESHEET" type="text/css" href="DualMonitorTools.css" />
+<title>Dual Monitor Tools - Development information page</title>
+</head>
+
+<body>
+	<div id="page">
+
+		<div id="header">
+			<div id="header-logo">
+				<a href="index.html">
+					<img src="Images/dual_96_48.png" alt="Dual Monitor Tools" />
+				</a>
+			</div>
+
+			<div id="header-title">
+				<p class="HdrTitleBig">
+				Dual Monitor Tools
+				</p>
+			</div>
+		</div>
+
+		<div id="body">
+		<div id="navigation">
+			<span class="MenuTop"></span>
+			<a href="index.html" class="MenuItem">Home</a>
+			<a href="history.html" class="MenuItem">History</a>
+			<a href="download.html" class="MenuItem">Download</a>
+			<span class="CurPage">Development</span>
+			<br />
+
+			<span class="MenuHdr">Tools</span>
+			<a href="dmt.html" class="MenuItem">DMT</a>
+			<a href="dmt_general.html" class="MenuItem">DMT - General</a>
+			<a href="dmt_cursor.html" class="MenuItem">DMT - Cursor</a>
+			<a href="dmt_launcher.html" class="MenuItem">DMT - Launcher</a>
+			<a href="dmt_snap.html" class="MenuItem">DMT - Snap</a>
+			<a href="dmt_swapscreen.html" class="MenuItem">DMT - Swap Screen</a>
+			<a href="dmt_wallpaperchanger.html" class="MenuItem">DMT - Wallpaper Changer</a>
+			<a href="dmt_screensaver.html" class="MenuItem">DMT Screen Saver</a>
+			<a href="dualwallpaper.html" class="MenuItem">Dual Wallpaper</a>
+			<br />
+
+			<a href="http://sourceforge.net/projects/dualmonitortool">
+				<img src="http://sflogo.sourceforge.net/sflogo.php?group_id=252267&amp;type=2" width="125" height="37" alt="SourceForge.net Logo"/>
+			</a>
+		</div>
+	
+<div id="content">
+
+<p class="SubHeading">Source for latest released version</p>
+
+<p>The source for the latest released version of Dual Monitor Tools can be downloaded from the
+<a href="http://sourceforge.net/project/showfiles.php?group_id=252267">SourceForge download page</a></p>
+
+<p class="SubHeading">Subversion access</p>
+
+<p>Alternatively you can access the code directly using subversion.</p> 
+
+<p>If you have a subversion client installed,
+then you can check out the very latest code with:</p>
+<p>
+<tt>
+	svn co https://dualmonitortool.svn.sourceforge.net/svnroot/dualmonitortool/trunk DualMonitorTools
+</tt>
+</p>
+
+<p>To check out a particular version, say 2.0, then this can be checked out with:</p>
+<p>
+<tt>
+	svn co https://dualmonitortool.svn.sourceforge.net/svnroot/dualmonitortool/tags/rel-2.0 DualMonitorTools
+</tt>
+</p>
+
+<p class="SubHeading">Requirements</p>
+<p>The following tools have been used to build Dual Monitor Tools from version 1.9 onwards:</p>
+<ul>
+	<li>Visual C# 2012 Express Edition</li>
+</ul>
+
+<p>Prior to version 1.9, the following tools were used:</p>
+<ul>
+	<li>Visual C# 2005 Express Edition</li>
+	<li>Visual C++ 2010 Express Edition (needed for DisMon7 only)</li>
+</ul>
+
+<p>The WIX Toolset v3.10 is used to build the installer.</p>
+
+<p class="SubHeading">Directory layout</p>
+<p>The following sub-directories exist in the main project directory:
+<br />(Note: the directory Web is only available under svn) 
+</p>
+<dl>
+	<dt>DMT</dt>
+	<dd>Contains the C# source for DMT.</dd>
+	<dt>DmtWallpaper</dt>
+	<dd>Contains the C# source for the DMT Wallpaper screen saver.</dd>
+	<dt>DualWallpaper</dt>
+	<dd>Contains the C# source for Dual Wallpaper.</dd>
+	<dt>Installer</dt>
+	<dd>Contains the installer.</dd>
+	<dt>Web</dt>
+	<dd>Contains this web site.</dd>
+</dl>
+
+<p>The following directories can also be found under svn for retired tools:</p>
+<dl>
+	<dt>SwapScreen</dt>
+	<dd>Contains the C# source for Swap Screen.</dd>
+	<dt>DualWallpaperChanger</dt>
+	<dd>Contains the C# source forDual Wallpaper Changer.</dd>
+	<dt>DisMon</dt>
+	<dd>Contains the C# source for DisMon.</dd>
+	<dt>DisMon7</dt>
+	<dd>Contains the C++ source for DisMon7.</dd>
+	<dt>DualSnap</dt>
+	<dd>Contains the C# source for Dual Snap.</dd>
+</dl>
+
+
+
+<p class="SubHeading">XML documentation</p>
+<p>All significant public methods use XML documentation tags. 
+You can use your favourite tool e.g. <a href="http://www.doxygen.org">Doxygen</a> 
+to convert these to HTML viewable documentation.</p>
+
+
+</div>
+
+</div>
+	<div id="footer">
+		<div id="footer-left">
+		</div>
+		<div id="footer-right">
+		last updated 30 Dec 2016
+		</div>
+	</div>
+</div>
+</body>
+</html>
+

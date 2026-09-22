@@ -1,0 +1,11 @@
+Dual Monitor Tools
+
+Special thanks to the following:
+
+Shawn Steele for adding the background colour selector in DualWallpaper.
+Nithin Philips for adding the drag and drop to DualWallpaper.
+Christopher Drexler for the command line option to DualWallpaper.
+Ryan Kirby for identifying bug in previous screen hotkey.
+Mario D'Amico for adding the Bing wallpaper downloader.
+
+And all those that have contributed to the forum with bugs and suggestions for improvements.

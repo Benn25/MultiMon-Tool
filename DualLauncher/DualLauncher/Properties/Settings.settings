@@ -1,0 +1,42 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="DualLauncher.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ActivateHotKey" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">524369</Value>
+    </Setting>
+    <Setting Name="NeedSettingsUpgrade" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="MaxMostUsedSize" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">8</Value>
+    </Setting>
+    <Setting Name="UseMru" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="Position1Key" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">112</Value>
+    </Setting>
+    <Setting Name="Position2Key" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">113</Value>
+    </Setting>
+    <Setting Name="Position3Key" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">114</Value>
+    </Setting>
+    <Setting Name="Position4Key" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">115</Value>
+    </Setting>
+    <Setting Name="IconView" Type="System.Windows.Forms.View" Scope="User">
+      <Value Profile="(Default)">LargeIcon</Value>
+    </Setting>
+    <Setting Name="AddMagicWordHotKey" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">524353</Value>
+    </Setting>
+    <Setting Name="StartupTimeout" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">60</Value>
+    </Setting>
+    <Setting Name="LastPosition" Type="System.Drawing.Rectangle" Scope="User">
+      <Value Profile="(Default)">0, 0, 0, 0</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

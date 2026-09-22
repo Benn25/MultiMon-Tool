@@ -1,0 +1,324 @@
+Dual Monitor Tools
+
+Changes from 2.12 to 2.13
+=========================
+
+DMT:SwapScreen Prevents user from accidentally moving start menu and task bar
+DMT:General Monitors table now shows the GPU that the monitor is attached to 
+DMT:General Added Top-down, left-right monitor ordering 
+DMT:General Users can now give their own name to each physical monitor
+DMT:General Can order monitors by name 
+DMT:Cursor Added hotkey to lock cursor to current monitor
+DMT:Cursor Primary monitor group can now be specified using monitor names
+
+
+Changes from 2.11 to 2.12
+=========================
+
+DMT:SwapScreen Now ignores windows that are not on the current virtual desktop
+DMT:SwapScreen Added hotkey to move all windows to a specified screen
+DMT:SwapScreen 'Move to next screen' logic updated to better handle different display sizes
+DMT:General  Monitor orientation can be changed where supported by monitor
+DMT: Many of the command line commands that take a display number can now take 'X' for the display that the cursor is on
+DMT: Monitor name now displayed (if room) on the monitor order and working area screens
+DMT: Added (optional) desktop context menu for some of the most used commands
+- option is in DMT->Options->'Dual Monitor Tools'->General
+
+
+Changes from 2.10 to 2.11
+=========================
+
+DMT:Cursor Fix for issue where stickiness stops working
+DMT:Wallpaper New option to stop wallpaper changing when gaming or doing presentations
+DMT:Snap Fix for snaps shown on wrong monitor in certain circumstances
+DMT: Better handling of monitor resolution changes
+DMT: F13 to F24 can now be used as hotkeys 
+
+Changes from 2.9 to 2.10
+========================
+
+DMT:Wallpaper User can select wallpaper to be saved as JPEG, PNG or BMP
+DMT:Wallpaper Any image files that can't be loaded are now logged
+DMT:SwapScreen On initial install, the UDAs are no longer automatically added as magic words
+DMT:Cursor Fix for cases where some display resolution changes were not noticed
+
+Changes from 2.8.1 to 2.9
+=========================
+
+DMT:Cursor can now specify a primary group of monitors using a GUI
+DMT:General monitor brightness/contrast can now be adjusted with delta values
+DMT:Wallpaper new provider that takes a list of image files/URLs
+
+
+Changes from 2.8 to 2.8.1
+=========================
+
+Temporary release (all changes will be absorbed into 2.9)
+
+DMT:General Monitors grid fix for sizes/areas of rotated monitors
+DMT:General Monitors grid, can now view / adjust contrast (if supported by monitor)
+
+DMT:Cursor Introduced the concept of a group of primary monitors
+
+When a group of primary monitors is specified, the "Allow cursor to return
+freely to the primary screen" can now be read as "Allow cursor to return
+freely to any monitor in the primary group".
+If a (valid) group of primary monitors is not specified, then the original
+functionality will be retained.
+
+A GUI will be added for 2.9 to specify which monitors belong to the primary
+group.
+For now, it needs to be done my manually editing the DmtSettings.xml file.
+The location of this file can be determined from Options->"Dual Monitor
+Tools"->General->Settings".
+
+Make sure DMT is not running when you edit this file.
+If you have 4 monitors, which would be 1, 2, 3, 4 and you want to make 2 and 3
+act as the primary group, then add a line like:
+
+	<setting name="Cursor__PrimaryGroup" value="2,3" />
+
+within the <settings> ... </settings> block.
+(Note there are two underscore characters between "Cursor" and
+"PrimaryGroup".)
+
+If you then start DMT and have sticky/locked cursor in force and the "Allow cursor
+to return freely to the primary screen" checked, then you will be able to move
+the cursor freely between screens 2 and 3 and onto these screens from the
+other screens, but the sticky/locked operation will apply if you try to move
+the cursor onto screens 1 and 4.
+
+
+Changes from 2.7 to 2.8
+========================
+
+DMT New monitor numbering/ordering
+
+The default numbering of monitors has changed in 2.8 so that monitors are now
+numbered left to right and then top to bottom instead of the old ordering
+provided by the .NET API.  If this is an issue for you, then you can go into
+Options -> 'Dual Monitor Tools' -> 'Monitor Order'  and select 'DotNet order,
+as used by DMT v2.7 and earlier'.
+
+DMT:Wallpaper added support for wallpapers from Bing
+DMT:Wallpaper can show images from local disk in alphabetical order
+DMT:Wallpaper handles failure to download images better
+DMT:Cursor allows cursor to move via dead space for non rectangular layouts
+DMT:Snap can specify monitor to put snap on
+
+
+Changes from 2.6 to 2.7
+========================
+
+DMT:Wallpaper changer image fill method is more configurable
+DMT:Wallpaper changer properties show a few more details
+DMT:Wallpaper changer updated for change to Unsplash website
+DMT:SwapScreen SDA option to put (transparent) border on outside of SDA
+
+Changes from 2.5 to 2.6
+========================
+
+DMT:SwapScreen now allows up to 100 user defined areas
+DMT:SwapScreen added system defined areas for each screen/half/quarter
+DMT:SwapScreen fix for snap up/down/left/right when taskbar at (0, 0)
+DMT:Wallpaper changer can now enable/disable providers from grid
+DMT:Cursor fix for cursor sometimes passing to another screen when it shouldn't
+
+Changes from 2.4 to 2.5
+========================
+
+DMT:Wallpaper changer fixed flicker when using smooth changing
+DMT:SwapScreen added a parametised "ShowDesktop" command
+DMT:Wallpaper changer added a new URL image provider
+DMT:Wallpaper changer Unsplash image provider has more configuration
+DMT:Wallpaper changer new option to cycle though all local disk images before repeating
+DMT:SwapScreen new hotkey to show desktop that cursor is on
+DMT:SwapScreen option to reset the UDAs
+DMT:SwapScreen "ShowDesktop" now supports up to 16 monitors
+DmtWallpaper screen saver added
+
+Changes from 2.3 to 2.4
+========================
+
+DMT:General now shows information about monitors
+DMT:General can now change active monitor
+DMT:General can now change monitor brightness
+DMT can now be closed from the command line with -x option
+DMT:Cursor fix for remembering free movement key
+DMT:Snap fix for snaps that are smaller then secondary on one dimension only
+DMT:SwapScreen fix for 'Next Screen' when taskbar at left or top of monitor
+DMT:Wallpaper changer obeys exif orientation flag
+DMT:Wallpaper changer temporary fix for Unsplash images
+
+Changes from 2.2 to 2.3
+========================
+
+Installer now available.
+DMT:SwapScreen fix for when swapping top 2 windows
+DMT:WallpaperChanger makes sure correct wallpaper mode used if using smooth
+changes
+DMT:Cursor fix for cursor not sticky after Ctrl-Alt-Del
+DMT No longer allows multiple instances of its GUI interface to be run
+
+Changes from 2.1 to 2.2
+========================
+
+Magic words can be run from a batch file with: DMT "DMT:Launcher:Activate magic-word"
+DMT:Snap hotkey added to snap active window
+DMT:Snap snap shown same size (pixel basis) as original with options to scale
+DMT:WallpaperChanger LocalDisk can specify different directories for each monitor
+DMT:WallpaperChanger LocalDisk can specify a single image rather than a directory
+
+Changes from 2.0 to 2.1
+========================
+
+Now just needs the client profile subset of the .NET 4 framework, rather than the full version
+DMT Actions can now be performed from the command line / batch files
+DMT File locations are shown in options for troubleshooting
+DMT:Cursor Option to allow mouse buttons to be used to cross cursor boundaries
+DMT:Cursor Added hotkey to move cursor to center of primary monitor
+DMT:SwapScreen fixed hotkey to move active window to previous monitor
+DMT:WallpaperChanger has crossfade option for changing wallpaper
+DMT:WallpaperChanger shows details of images used in wallpaper
+DMT:WallpaperChanger Flickr added as an image provider
+DMT:WallpaperChanger Can choose different local disk folder for monitors in portrait orientation
+DMT:WallpaperChanger Unsplash provider updated for changes to their website
+
+
+Changes from 1.10 to 2.0
+========================
+
+New tool DMT provides the functionality previously provided by SwapScreen, 
+DualLauncher, DualSnap and DualWallpaperChanger together with extra functionality.
+DMT now easier to use from a portable device.
+All features within DMT can be launched with 'Magic Words'.
+DisMon has been dropped for the time being.
+
+
+Changes from 1.9 to 1.10
+========================
+
+Functional:
+Added new tool Dual Wallpaper Changer
+DualWallpaper has limited support for being run from the command line or batch scripts
+SwapScreen has a choice for key to use to allow cursor to move between screens
+
+Bug fixes:
+SwapScreen should now work better with touch screens
+DualWallpaper interpolation mode changed to improve image quality
+
+
+Changes from 1.8 to 1.9
+=======================
+
+Functional:
+DualWallpaper now supports drag and drop (thanks to Nithin Philips for this)
+SwapScreen has new hotkey to allow the top two windows to be be swapped
+SwapScreen has 4 new hotkeys for snap left/right/up/down
+
+Windows 8 support:
+DualWallpaper works with win 8 when primary monitor not left/top most
+
+Bug fixes:
+SwapScreen has improved handling of configuration saving problems
+DualWallpaper supports DPI scaling other than 100%
+DualWallpaper now also supports .jpeg (with an e) extension for input images
+
+
+Changes from 1.7 to 1.8
+=======================
+
+Functional:
+SwapScreen now allows you to move the active window to any of 10 user defined areas
+SwapScreen now has an option to allow sticky/locked cursors to return freely to the primary screen
+The background colour can now be set in DualWallpaper
+Option -n added to DisMon to stop it from restoring the monitors to their original state before it exits
+Option -x added to DisMon to tell it to change monitor states and exit 
+
+Bug fixes:
+Cancelling the 'Change hotkey' dialog did not always leave the hotkey unchanged
+In DualLauncher, the disable hotkey operation did not disable the hotkey
+
+Other:
+Changes to SwapScreen to reduce memory allocations
+
+
+Changes from 1.6 to 1.7
+=======================
+
+Functional:
+DualSnap now has hotkey to toggle display of snap.
+SwapScreen can set default cursor mode at startup.
+DualSnap, DualLauncher and SwapScreen now allow more keys to be used as hotkeys.
+
+Bug fixes:
+SwapScreen cursor locking/stickiness had problems with some layouts with screens with different resolutions.
+DualWallpaper would crash if it couldn't write to a wallpaper.
+DualLauncher could sometimes forget its default screen position.
+SwapScreen fix to hooking which could cause problems if other programs also hook the mouse and/or keyboard.
+
+Other:
+DualSnap options window re-arranged so hotkey editing is in same style as the other tools.
+
+
+Changes from 1.5 to 1.6
+=======================
+
+Functional:
+Added new tool DualLauncher.
+
+Bug fixes:
+SwapScreen handles supersized windows correctly when taskbar 
+stretches across entire desktop.
+
+Other:
+DualWallpaper interface cleaned up to fit on smaller screens.
+
+Changes from 1.4 to 1.5
+=======================
+
+Functional: 
+SwapScreen's 'Minimise Active Window' now works as a toggle.
+SwapScreen now has a portable mode where its settings can live
+in the same directory as the executable.
+DisMon can now also change the primary monitor.
+Command line interface to Dismon changed for better flexibility.
+
+Other:
+DisMon7 functionality (for Windows 7) now incorporated into DisMon.
+
+Changes from 1.3 to 1.4
+=======================
+
+Functional:
+Added SwapScreen can now restrict cursor movement between screens.
+
+Other:
+New icons and about box images used.
+
+Changes from 1.2 to 1.3
+=======================
+
+Functional:
+Added new tool DisMon and DisMon7.
+Added 'start when Windows starts' to SwapScreen and DualSnap.
+Added zoom and center fit to DualWallpaper.
+
+Changes from 1.1 to 1.2
+=======================
+
+Functional:
+Added new tool DualWallpaper.
+Added 9 new hotkeys to SwapScreen.
+
+Bug fixes:
+Fixed menu scrolling problem in DualSnap.
+
+Changes from 1.0 to 1.1
+=======================
+
+Functional:
+Added new tool DualSnap.
+
+Other:
+Added link from SwapScreen's context menu to website.

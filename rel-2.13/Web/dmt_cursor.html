@@ -1,0 +1,165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="description" content="Project page for Dual Monitor Tools." />
+<meta name="keywords" content="Dual Monitor Tools, swap screen, swapscreen, multi, display" />
+<meta name="author" content="Gerald Evans" />
+<link rel="STYLESHEET" type="text/css" href="DualMonitorTools.css" />
+<title>Dual Monitor Tools - DMT Cursor</title>
+</head>
+
+<body>
+	
+	<div id="page">
+
+		<div id="header">
+			<div id="header-logo">
+				<a href="index.html">
+					<img src="Images/dual_96_48.png" alt="Dual Monitor Tools" />
+				</a>
+			</div>
+
+			<div id="header-title">
+				<p class="HdrTitleBig">
+				Dual Monitor Tools
+				</p>
+			</div>
+		</div>
+
+		<div id="body">
+		<div id="navigation">
+			<span class="MenuTop"></span>
+			<a href="index.html" class="MenuItem">Home</a>
+			<a href="history.html" class="MenuItem">History</a>
+			<a href="download.html" class="MenuItem">Download</a>
+			<a href="development.html" class="MenuItem">Development</a>
+			<br />
+
+			<span class="MenuHdr">Tools</span>
+			<a href="dmt.html" class="MenuItem">DMT</a>
+			<a href="dmt_general.html" class="MenuItem">DMT - General</a>
+			<span class="CurPage">DMT - Cursor</span>
+			<a href="dmt_launcher.html" class="MenuItem">DMT - Launcher</a>
+			<a href="dmt_snap.html" class="MenuItem">DMT - Snap</a>
+			<a href="dmt_swapscreen.html" class="MenuItem">DMT - Swap Screen</a>
+			<a href="dmt_wallpaperchanger.html" class="MenuItem">DMT - Wallpaper Changer</a>
+			<a href="dmt_screensaver.html" class="MenuItem">DMT Screen Saver</a>
+			<a href="dualwallpaper.html" class="MenuItem">Dual Wallpaper</a>
+			<br />
+
+			<a href="http://sourceforge.net/projects/dualmonitortool">
+				<img src="http://sflogo.sourceforge.net/sflogo.php?group_id=252267&amp;type=2" width="125" height="37" alt="SourceForge.net Logo"/>
+			</a>
+		</div>
+
+<div id="content">
+
+<p class="AppTitle">
+	<img src="Images/dmt_cursor_48_24.png" class="AppLogo" alt="DMT Cursor" />
+	DMT Cursor
+</p>
+
+<p>Control movement of cursor between monitors.
+The cursor can be locked to a monitor or made sticky, so extra
+effort is required to move it between monitors.</p>
+
+
+
+<p class="SubHeading">'General' options</p>
+
+<img src="Images/dmt_cursor_general.png" alt="Cursor general" />
+
+<p class="SubHeading2"><a name="CursorNextScreen">Move cursor to next screen</a></p>
+<p>This will move the cursor to the next screen.</p>
+
+<p class="SubHeading2"><a name="CursorPrevScreen">Move cursor to previous screen</a></p>
+<p>This will move the cursor to the previous screen.</p>
+
+<p class="SubHeading2"><a name="CursorCenter">Center cursor on primary screen</a></p>
+<p>This will move the cursor to the center of the primary screen.</p>
+
+<p class="SubHeading2"><a name="CursorLock">Lock cursor onto monitor</a></p>
+<p>Toggles the locking of the cursor to the current screen it is on.  This acts independently to the following 'Sticky' options and when active will override them, and the cursor will remain locked until the hot key is pressed again.</p>
+
+
+<p class="SubHeading">'Sticky' options</p>
+
+<img src="Images/dmt_cursor_sticky.png" alt="Cursor sticky" />
+
+
+<p>These options allow you to control how the cursor moves between the screens.</p>
+<p>The cursor can be in one of three modes:</p>
+<ul>
+	<li>Free - the cursor is free to move unhindered between screens</li>
+	<li>Sticky - there is resistance to moving the cursor between screens</li>
+	<li>Locked - the cursor is locked onto a single screen</li>
+</ul>
+
+<p class="SubHeading2"><a name="FreeCursor">Cursor free to move between screens</a></p>
+<p>This will return cursor movement to the default state where the cursor is allowed to move freely between the screens.</p>
+<p>If the hotkey for this option is left as disabled, then the hotkeys for <a href="#StickyCursor">Cursor movement between screens is sticky</a>
+and <a href="#LockCursor">Lock cursor onto screen</a> work as toggle keys.  If this hotkey is defined, then the sticky and lock hotkeys do not toggle.</p>
+
+<p class="SubHeading2"><a name="StickyCursor">Cursor movement between screens is sticky</a></p>
+<p>The cursor is allowed to move between screens, but there is some resistance to moving between the screens. 
+You can adjust the resistance using the <a href="#StickyResistance">Resistance to movement between screens</a> slider.</p>
+
+<p class="SubHeading2"><a name="LockCursor">Lock cursor onto screen</a></p>
+<p>This locks the cursor onto the screen and may not move off the screen no matter how much you move the mouse.</p>
+<p>To move the cursor to another screen, you would have to switch to another mode, or use one of the options below.</p>
+
+
+<p class="SubHeading2"><a name="StickyResistance">Resistance to movement between screens</a></p>
+<p>This slider controls the resistance to moving the cursor between screens when in Sticky mode.</p>
+<p>This effectively controls the extra distance that the mouse must move before it is allowed to move to the next screen.</p>
+
+<p class="SubHeading2"><a name="ControlCursor">Allow cursor to move freely if this key is pressed</a></p>
+<p>If this is checked, then regardless of mode, you can freely move the cursor between screens while the selected key is pressed.
+Any one of the Control or Shift keys (left or right) may be chosen.</p>
+
+<p class="SubHeading2"><a name="MouseCursor">Allow cursor to move freely if this button is pressed</a></p>
+<p>If this is checked, then regardless of mode, you can freely move the cursor between screens while the selected mouse button is pressed.</p>
+
+<p class="SubHeading2"><a name="PrimaryReturn">Allow cursor to return freely (and within) the primary working area</a></p>
+<p>If this is checked, then regardless of mode, you can freely move the cursor over a screen boundary if the cursor is being moved onto a screen that belongs to the primary working area.  By default, this is just the primary screen, but you can use <a href="#PrimaryWorkingArea">Primary Working Area</a> to select which screens are part of your primary working area.</p>
+
+<p class="SubHeading2"><a name="DefaultCursor">Default cursor mode on startup</a></p>
+<p>Allows the cursor mode to be automatically set when DMT starts.</p>
+
+
+<p class="SubHeading"><a name="PrimaryWorkingArea">'Primary Working Area' options</a></p>
+
+<img src="Images/dmt_cursor_primary.png" alt="Cursor primary working area" />
+
+<p>You can use this to select a primary set of screens which the cursor is always allowed to enter without being affected by the sticky/lock cursor mode, but the sticky/lock mode will still apply if you try to move the cursor to a screen which is not in this group.</p>
+
+<p>You can either select the monitors in the primary working area either by:</p>
+
+<ul>
+	<li><b>Click a monitor to add or remove it from the primary working area</b></li>
+	<li><b>Following named monitors</b>: If you name your monitors, then you can specify the primary working area using their names.  This can be useful if you often connect and disconnect monitors.</li>
+</ul>
+
+
+<p class="SubHeading">'Dead Space' options</p>
+
+<img src="Images/dmt_cursor_dead_space.png" alt="Cursor dead space" />
+
+<p>If you have a non-rectangular screen layout, then Windows will not allow you to move the cursor across a border if there isn't a monitor on the other side.</p>
+
+<p>These options allow you to override this and allow the cursor to be moved through such borders and the cursor will jump to the nearest valid position on the adjoining monitor in the direction that the cursor is being moved.</p>
+
+</div>
+
+</div>
+	<div id="footer">
+		<div id="footer-left">
+		</div>
+		<div id="footer-right">
+		last updated 12 Sep 2026
+		</div>
+	</div>
+</div>
+</body>
+</html>

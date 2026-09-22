@@ -1,0 +1,195 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{50A35DD7-05AD-408F-A8D3-CCEFCC3284A8}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DualWallpaper</RootNamespace>
+    <AssemblyName>DualWallpaper</AssemblyName>
+    <ApplicationIcon>DualWallpaper.ico</ApplicationIcon>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\DMT\DMT\Library\DisplayHandling\DisplayDevice.cs">
+      <Link>Library\DisplayHandling\DisplayDevice.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\DisplayHandling\DisplayDevices.cs">
+      <Link>Library\DisplayHandling\DisplayDevices.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\DisplayHandling\MonitorNameIdMap.cs">
+      <Link>Library\DisplayHandling\MonitorNameIdMap.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\DisplayHandling\NativeDisplayHelper.cs">
+      <Link>Library\DisplayHandling\NativeDisplayHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\DisplayHandling\NativeDisplayMethods.cs">
+      <Link>Library\DisplayHandling\NativeDisplayMethods.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\DisplayHandling\NumericRange.cs">
+      <Link>Library\DisplayHandling\NumericRange.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\DisplayHandling\PhysicalMonitors.cs">
+      <Link>Library\DisplayHandling\PhysicalMonitors.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\DisplayHandling\WindowsDevicePath.cs">
+      <Link>Library\DisplayHandling\WindowsDevicePath.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\Environment\DmtRegistry.cs">
+      <Link>Library\Environment\DmtRegistry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\Environment\ILocalEnvironment.cs">
+      <Link>Library\Environment\ILocalEnvironment.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\Environment\LocalEnvironment.cs">
+      <Link>Library\Environment\LocalEnvironment.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\Environment\Monitor.cs">
+      <Link>Library\Environment\Monitor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\Environment\Monitors.cs">
+      <Link>Library\Environment\Monitors.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\Environment\OsHelper.cs">
+      <Link>Library\Environment\OsHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\GuiUtils\ScreenHelper.cs">
+      <Link>Library\GuiUtils\ScreenHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\Logging\ILogger.cs">
+      <Link>Library\Logging\ILogger.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\Logging\Logger.cs">
+      <Link>Library\Logging\Logger.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\PInvoke\ActiveDesktop.cs">
+      <Link>Library\PInvoke\ActiveDesktop.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\PInvoke\NativeMethods.cs">
+      <Link>Library\PInvoke\NativeMethods.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\PInvoke\VirtualDesktopManager.cs">
+      <Link>Library\PInvoke\VirtualDesktopManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\Settings\FileLocations.cs">
+      <Link>Library\Settings\FileLocations.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\Transform\Scaler.cs">
+      <Link>Library\Transform\Scaler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\Transform\ScreenMapping.cs">
+      <Link>Library\Transform\ScreenMapping.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\Utils\FieldDeserialiser.cs">
+      <Link>Library\Utils\FieldDeserialiser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\Utils\FieldSerialiser.cs">
+      <Link>Library\Utils\FieldSerialiser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\Wallpaper\WallpaperImageFormat.cs">
+      <Link>Library\Wallpaper\WallpaperImageFormat.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DMT\DMT\Library\Wallpaper\WindowsWallpaper.cs">
+      <Link>Library\Wallpaper\WindowsWallpaper.cs</Link>
+    </Compile>
+    <Compile Include="AboutForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AboutForm.designer.cs">
+      <DependentUpon>AboutForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controller.cs" />
+    <Compile Include="DualWallpaper.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DualWallpaper.Designer.cs">
+      <DependentUpon>DualWallpaper.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ConsoleApplication.cs" />
+    <Compile Include="Library\GuiUtils\MsgDlg.cs" />
+    <Compile Include="Options.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="AboutForm.resx">
+      <DependentUpon>AboutForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DualWallpaper.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>DualWallpaper.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="app.config" />
+    <None Include="app.manifest" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="StretchType.cs" />
+    <Compile Include="SystemMenuHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="DualWallpaper.ico" />
+    <Content Include="Library\_README.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

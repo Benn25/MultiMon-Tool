@@ -1,0 +1,385 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="description" content="Project page for Dual Monitor Tools." />
+<meta name="keywords" content="Dual Monitor Tools, swap screen, swapscreen, multi, display" />
+<meta name="author" content="Gerald Evans" />
+<link rel="STYLESHEET" type="text/css" href="DualMonitorTools.css" />
+<title>Dual Monitor Tools - DMT</title>
+</head>
+
+<body>
+	
+	<div id="page">
+
+		<div id="header">
+			<div id="header-logo">
+				<a href="index.html">
+					<img src="Images/dual_96_48.png" alt="Dual Monitor Tools" />
+				</a>
+			</div>
+
+			<div id="header-title">
+				<p class="HdrTitleBig">
+				Dual Monitor Tools
+				</p>
+			</div>
+		</div>
+
+		<div id="body">
+		<div id="navigation">
+			<span class="MenuTop"></span>
+			<a href="index.html" class="MenuItem">Home</a>
+			<a href="history.html" class="MenuItem">History</a>
+			<a href="download.html" class="MenuItem">Download</a>
+			<a href="development.html" class="MenuItem">Development</a>
+			<br />
+
+			<span class="MenuHdr">Tools</span>
+			<span class="CurPage">DMT</span>
+			<a href="dmt_general.html" class="MenuItem">DMT - General</a>
+			<a href="dmt_cursor.html" class="MenuItem">DMT - Cursor</a>
+			<a href="dmt_launcher.html" class="MenuItem">DMT - Launcher</a>
+			<a href="dmt_snap.html" class="MenuItem">DMT - Snap</a>
+			<a href="dmt_swapscreen.html" class="MenuItem">DMT - Swap Screen</a>
+			<a href="dmt_wallpaperchanger.html" class="MenuItem">DMT - Wallpaper Changer</a>
+			<a href="dmt_screensaver.html" class="MenuItem">DMT Screen Saver</a>
+			<a href="dualwallpaper.html" class="MenuItem">Dual Wallpaper</a>
+			<br />
+
+			<a href="http://sourceforge.net/projects/dualmonitortool">
+				<img src="http://sflogo.sourceforge.net/sflogo.php?group_id=252267&amp;type=2" width="125" height="37" alt="SourceForge.net Logo"/>
+			</a>
+		</div>
+
+<div id="content">
+
+<p class="AppTitle">
+	<img src="Images/dmt_48_24.png" class="AppLogo" alt="DMT" />
+	DMT
+</p>
+
+<p>Provides support for the following modules:
+<ul>
+	<li><a href="dmt_general.html">General - show program and monitor configuration</a></li>
+	<li><a href="dmt_cursor.html">Cursor - restricts cursor movement between monitors</a></li>
+	<li><a href="dmt_launcher.html">Launcher - launches and position applications</a></li>
+	<li><a href="dmt_snap.html">Snap - takes snapshot of primary monitor</a></li>
+	<li><a href="dmt_swapscreen.html">Swap Screen - hotkeys to move windows around</a></li>
+	<li><a href="dmt_wallpaperchanger.html">Wallpaper Changer - changes wallpaper</a></li>
+</ul>
+</p>
+
+<p class="SubHeading">Usage</p>
+
+<p>When DMT.exe is run it will put itself into the notification area of the taskbar.</p>
+
+<p>Double click on the <img src="Images/dmt2_16_16.png" /> icon in the notification area to bring up the options.
+Alternatively, you can right click on the icon to bring up it's context menu.</p>
+
+
+<p class="SubHeading">'Run as Administrator'</p>
+
+<p>Normally, the modules within DMT can not act on any window belonging to applications that have been started 
+using the 'Run as Administrator' option as they will have insufficient permission to do so.
+Also when such a window is the active window, then the mouse/cursor modes do not work.</p>
+<p>If you want DMT to be able to move or minimise such windows and for the mouse/cursor modes to always work, 
+then you will need to run DMT with the 'Run as Administrator' option.</p>
+
+<p class="SubHeading">Portable Mode</p>
+
+<p>DMT has the ability to run from a portable device, such as a USB memory stick.</p>
+<p>To use this mode you will need to download the zip file rather than using the msi installer.</p>
+<p>By default DMT will save any configuration files to the same directory that it runs from,
+so if you are running it from a portable device, any options set will also be saved to the device.</p>
+<p>If you want the application to reside in a read only directory, then this can be achieved by
+using a DmtFileLocations.xml file.  See the supplied DmtFileLocations-Sample.xml for further details.</p>
+
+<p class="SubHeading">Internal Commands</p>
+
+<p>Most of the commands within DMT can be run using a hotkey, a Magic Word or from the command line.</p>
+
+<p>To use with a Magic Word, when you are <a href="dmt_launcher.html#EditMagicWord">adding a magic word</a>,
+enter one of the commands mentioned below for the filename field. 
+Alternatively, and easier, use the "Internal Command" button on the same dialog to select a command
+from the drop down boxes.</p>
+
+<p>To use from the command line or in a batch file, specify the internal command as the parameter to DMT. 
+Note: There must be an existing instance of DMT running in the system notification area for this to work. 
+For example to change the wallpaper from a batch file, 
+you would add the following command to the batch file:</p>
+
+<p>DMT DMT:WallpaperChanger:ChangeWallpaper</p>
+
+<p>You may need to specify the full path to DMT.exe, if the location is not on your path.</p>
+
+<p>Some commands require a parameter.  If using as a Magic Word, put the parameter in the Parameters field.
+If running from the command line, include the parameter with a space between the command and it and all in double quotes.
+For example to make your second screen the primary screen you would run:</p>
+
+<p>DMT "DMT:General:ChangePrimary 2"</p>
+
+<p>Instead of the screen number, you can use 'X' to indicate the screen that the cursor is currently on.  So to make the screen that the cursor is on the primary screen, you would run:</p>
+
+<p>DMT "DMT:General:ChangePrimary X"</p>
+
+
+<p>The following commands are available:</p>
+<table>
+	<tr>
+		<th>Command</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td>DMT:General:Options</td>
+		<td>Show options dialog.</td>
+	</tr>
+	<tr>
+		<td>DMT:General:ChangePrimary</td>
+		<td>Changes the primary screen.
+			This requires a parameter which is the numeric value of the screen you wish to become the primary screen.
+			You can find the number to use from the column heading in the Monitors options display.
+			You can also use 'X' for the screen that the cursor is on.
+		</td>
+	</tr>
+	<tr>
+		<td>DMT:General:ChangeBrightness</td>
+		<td>Changes the brightness for a particular screen.
+			This requires a parameter which consists of 2 numbers separated with a ':'.
+			The first number is the monitor number which you can find from the column heading in the Monitors options display.
+			Or you can use 'X' for the monitor that the cursor is on.
+			The second is the desired brightness. If this number starts with '+' or '-', then it will be treated as a delta
+			and will be added to the existing brightness.  Otherwise, it will be treated as an absolute value and the brightness
+			will be set to this value.
+		</td>
+	</tr>
+	<tr>
+		<td>DMT:General:ChangeContrast</td>
+		<td>Changes the contrast for a particular screen.
+			The parameters for this work in the same way as for DMT:General:ChangeBrightness.
+		</td>
+	</tr>
+	<tr>
+		<td>DMT:General:ChangeOrientation</td>
+		<td>Changes the orientation for a particular screen.
+			The parameters for this work in a similar way as for DMT:General:ChangeBrightness,
+			but the second value is one of 0, 90, 180 or 270 to indicate the clockwise rotation of the monitor.
+		</td>
+	</tr>
+
+
+	<tr>
+		<td>DMT:Cursor:FreeCursor</td>
+		<td>Make cursor free to move between monitors.</td>
+	</tr>
+	<tr>
+		<td>DMT:Cursor:StickyCursor</td>
+		<td>Make cursor movement between monitors sticky.</td>
+	</tr>
+	<tr>
+		<td>DMT:Cursor:LockCursor</td>
+		<td>Locks the cursor to the current monitor.</td>
+	</tr>
+	<tr>
+		<td>DMT:Cursor:CursorToNextScreen</td>
+		<td>Moves the cursor to the next screen.</td>
+	</tr>
+	<tr>
+		<td>DMT:Cursor:CursorToPrevScreen</td>
+		<td>Moves the cursor to the previous screen.</td>
+	</tr>
+	<tr>
+		<td>DMT:Cursor:CursorToPrimaryScreen</td>
+		<td>Moves the cursor to the primary screen.</td>
+	</tr>
+	<tr>
+		<td>DMT:Cursor:LockCursorToMonitor</td>
+		<td>Locks the cursor to the monitor it is on.</td>
+	</tr>
+
+
+	<tr>
+		<td>DMT:Launcher:Activate</td>
+		<td>Show the Magic Word entry dialog. This is not available for use from a magic word.</td>
+	</tr>
+	<tr>
+		<td>DMT:Launcher:AddMagicWord</td>
+		<td>Show the 'Add Magic Word' dialog.</td>
+	</tr>
+
+
+	<tr>
+		<td>DMT:Snap:TakeSnap</td>
+		<td>Take a snap of the primary monitor.</td>
+	</tr>
+	<tr>
+		<td>DMT:Snap:TakeWinSnap</td>
+		<td>Take a snap of the active window.</td>
+	</tr>
+	<tr>
+		<td>DMT:Snap:ShowSnap</td>
+		<td>Toggle display of current snap.</td>
+	</tr>
+
+
+	<tr>
+		<td>DMT:SwapScreen:NextScreen</td>
+		<td>Move active window to next screen.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:PrevScreen</td>
+		<td>Move active window to previous screen.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:Minimise</td>
+		<td>Minimize the active window.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:Maximise</td>
+		<td>Maximize the active window.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:Supersize</td>
+		<td>Supersize the active window.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:SwapTop2</td>
+		<td>Swap position and size of the top 2 windows.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:SnapLeft</td>
+		<td>Moves the active window to the half screen position to its left.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:SnapRight</td>
+		<td>Moves the active window to the half screen position to its right.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:SnapUp</td>
+		<td>Moves the active window to the half screen position above it.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:SnapDown</td>
+		<td>Moves the active window to the half screen position below it.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:MinimiseAllBut</td>
+		<td>Minimize all windows apart from the active window.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:RotateNext</td>
+		<td>Move every window to its next screen.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:RotatePrev</td>
+		<td>Move every window to its previous screen.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:ShowDesktop</td>
+		<td>Minimize all windows on the given monitor.  This requires a parameter which is the monitor number.
+		'X' may be used to indicate the monitor that the cursor is currently on.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:ShowDesktop1</td>
+		<td>Minimize all windows on monitor 1.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:ShowDesktop2</td>
+		<td>Minimize all windows on monitor 2.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:ShowDesktop3</td>
+		<td>Minimize all windows on monitor 3.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:ShowDesktop4</td>
+		<td>Minimize all windows on monitor 4.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:MoveAllWindowsTo</td>
+		<td>Moves all (non-tool) windows on other monitors to the given monitor.  This requires a parameter which is the monitor number.
+		'X' may be used to indicate the monitor that the cursor is currently on.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:MoveAllWindowsToCursor</td>
+		<td>Moves all (non-tool) windows on other monitors to the monitor that the cursor is on.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:SDA11</td>
+		<td>Move the active window to System Defined Area 1 (bottom left) on screen 1.</td>
+	</tr>
+	<tr>
+		<td>...</td>
+		<td>...</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:SDA19</td>
+		<td>Move the active window to System Defined Area 9 (top right) on screen 1.</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:SDA21</td>
+		<td>Move the active window to System Defined Area 1 (bottom left) on screen 2.</td>
+	</tr>
+	<tr>
+		<td>...</td>
+		<td>...</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:UDA0</td>
+		<td>Move the active window to User Defined Area 0.</td>
+	</tr>
+	<tr>
+		<td>...</td>
+		<td>...</td>
+	</tr>
+	<tr>
+		<td>DMT:SwapScreen:UDA99</td>
+		<td>Move the active window to User Defined Area 99.</td>
+	</tr>
+
+
+	<tr>
+		<td>DMT:WallpaperChanger:ChangeWallpaper</td>
+		<td>Change the wallpaper now.</td>
+	</tr>
+	<tr>
+		<td>DMT:WallpaperChanger:PauseWallpaper</td>
+		<td>Pause changing wallpaper.  Works as a toggle.</td>
+	</tr>
+
+
+</table>
+
+<p>You can also run magic words from the command line with:</p>
+
+<p>DMT "DMT:Launcher:Activate magic-word-here"</p>
+
+<p>Note the command and the magic word are within a single set of double quotes.</p>
+
+<p class="SubHeading">Command line options</p>
+
+<p>In addition to running the above internal commands, the following options can be specified on the command line:</p>
+
+<dl>
+	<dt>-?</dt>
+	<dd>Show usage.</dd>
+	<dt>-v</dt>
+	<dd>Show version.</dd>
+	<dt>-x</dt>
+	<dd>Close down DMT if it is already running in the notification area.</dd>
+</dl>
+
+</div>
+
+</div>
+	<div id="footer">
+		<div id="footer-left">
+		</div>
+		<div id="footer-right">
+		last updated 12 Sep 2026
+		</div>
+	</div>
+</div>
+</body>
+</html>

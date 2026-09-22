@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="description" content="Project page for Dual Monitor Tools." />
+<meta name="keywords" content="Dual Monitor Tools, swap screen, swapscreen, multi, display" />
+<meta name="author" content="Gerald Evans" />
+<link rel="STYLESHEET" type="text/css" href="DualMonitorTools.css" />
+<title>Dual Monitor Tools - DMT</title>
+</head>
+
+<body>
+	
+	<div id="page">
+
+		<div id="header">
+			<div id="header-logo">
+				<a href="index.html">
+					<img src="Images/dual_96_48.png" alt="Dual Monitor Tools" />
+				</a>
+			</div>
+
+			<div id="header-title">
+				<p class="HdrTitleBig">
+				Dual Monitor Tools
+				</p>
+			</div>
+		</div>
+
+		<div id="body">
+		<div id="navigation">
+			<span class="MenuTop"></span>
+			<a href="index.html" class="MenuItem">Home</a>
+			<a href="history.html" class="MenuItem">History</a>
+			<a href="download.html" class="MenuItem">Download</a>
+			<a href="development.html" class="MenuItem">Development</a>
+			<br />
+
+			<span class="MenuHdr">Tools</span>
+			<a href="dmt.html" class="MenuItem">DMT</a>
+			<span class="CurPage">DMT - General</span>
+			<a href="dmt_cursor.html" class="MenuItem">DMT - Cursor</a>
+			<a href="dmt_launcher.html" class="MenuItem">DMT - Launcher</a>
+			<a href="dmt_snap.html" class="MenuItem">DMT - Snap</a>
+			<a href="dmt_swapscreen.html" class="MenuItem">DMT - Swap Screen</a>
+			<a href="dmt_wallpaperchanger.html" class="MenuItem">DMT - Wallpaper Changer</a>
+			<a href="dmt_screensaver.html" class="MenuItem">DMT Screen Saver</a>
+			<a href="dualwallpaper.html" class="MenuItem">Dual Wallpaper</a>
+			<br />
+
+			<a href="http://sourceforge.net/projects/dualmonitortool">
+				<img src="http://sflogo.sourceforge.net/sflogo.php?group_id=252267&amp;type=2" width="125" height="37" alt="SourceForge.net Logo"/>
+			</a>
+		</div>
+
+<div id="content">
+
+<p class="AppTitle">
+	<img src="Images/dmt_48_24.png" class="AppLogo" alt="DMT General" />
+	DMT General
+</p>
+
+<p>Provides configuration information about DMT and your monitors.</p>
+
+
+<p class="SubHeading">'General' options</p>
+
+<img src="Images/dmt_general_general.png" alt="general options" />
+
+<p>This provides general options and shows the location of the configuration files that it uses.</p>
+
+<p class="SubHeading2">Start when Windows starts</p>
+
+<p>If you want DMT to start automatically when your computer boots,
+then just check the 'Start when Windows starts' option.</p>
+
+<p class="SubHeading2">Add to desktop context menu</p>
+
+<p>This will add a 'Dual Monitor Tools' menu to the context menu displayed when you right-click the Windows background.</p>
+
+
+<img src="Images/dmt_context_menu.png" alt="context menu" />
+
+
+<p class="SubHeading2">Installed Version</p>
+
+<p>This will show the current version you have installed and whether it was installed from a msi installer or if it is a portable installation installed from a zip file.</p>
+
+<p class="SubHeading2">File Locations</p>
+
+<p>Shows the location of the files used by DMT.</p>
+
+
+
+<p class="SubHeading"><a name="MonitorOrder">'MonitorOrder' options</a></p>
+
+<img src="Images/dmt_general_monitor_order.png" alt="monitor options" />
+
+<p>This controls the numbering of the monitors as used within DMT itself only.  The monitor numbers are used within the Monitors grid, when moving windows between monitors and in wallpaper generation.</p>
+
+<p>The choice for ordering is:<p>
+<ul>
+	<li><b>Left - right, top - down</b>: The monitors are ordered left - right by the monitors left hand co-ordinate, and by top - bottom of the monitors top co-ordinate if multiple monitors have the same left hand co-ordinate.  This is the default option.</li>
+
+	<li><b>Top - down, left - right</b>: The monitors are ordered top - down by the monitors top co-ordinate, and by left - right of the monitors left co-ordinate if multiple monitors have the same top co-ordinate.</li>
+
+	<li><b>DotNet order, as used by DMT v2.7 and earlier</b>: The monitors use the ordering returned by the Windows .NET API.  This is what versions prior to version 2.8 used.</li>
+
+	<li><b>Following named monitor order</b>: If you name your monitors, then you can specify the order using their names.  This can be useful if you often connect and disconnect monitors.  Any monitors that are not found in the given named list will be added after these using the Left - right, top - down order.</li>
+</ul>
+
+<p><b>If you have upgraded to version 2.8 or later from 2.7 or earlier, then you may find that your monitor numbers have changed.  You can either switch back to using .NET ordering, or update the required settings to use the new ordering.</b></p>
+
+
+<p class="SubHeading">'Monitors' options</p>
+
+<img src="Images/dmt_general_monitors.png" alt="monitor options" />
+
+<p>This shows a grid containing details about your monitors. 
+Those cells that have a light yellow background have a context menu, or can be double clicked to change the values.</p>
+
+<p>Currently it is only possible to change the primary monitor and to change each monitor's brightness/contrast/orientation. Changing the monitor brightness/contrast/orientation is not supported on some monitors.</p>
+
+<p class="SubHeading2">Show all Monitors</p>
+
+<p>This will also show (very limited) information about all possible monitor connections. This is of limited use now, but may be useful when DMT is enhanced to enable and disable monitors.</p>
+
+
+</div>
+
+</div>
+	<div id="footer">
+		<div id="footer-left">
+		</div>
+		<div id="footer-right">
+		last updated 12 Sep 2026
+		</div>
+	</div>
+</div>
+</body>
+</html>

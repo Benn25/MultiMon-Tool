@@ -1,0 +1,169 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="description" content="Project page for Dual Monitor Tools." />
+<meta name="keywords" content="Dual Monitor Tools, disable, secondary, multi, display, screen, dismon, dismon7" />
+<meta name="author" content="Gerald Evans" />
+<link rel="STYLESHEET" type="text/css" href="DualMonitorTools.css" />
+<title>Dual Monitor Tools - DisMon page</title>
+</head>
+
+<body>
+	
+	<div id="page">
+
+		<div id="header">
+			<div id="header-logo">
+				<a href="index.html">
+					<img src="Images/dual_96_48.png" alt="Dual Monitor Tools" />
+				</a>
+			</div>
+
+			<div id="header-title">
+				<p class="HdrTitleBig">
+				Dual Monitor Tools
+				</p>
+			</div>
+		</div>
+
+		<div id="body">
+		<div id="navigation">
+			<span class="MenuTop"></span>
+			<a href="index.html" class="MenuItem">Home</a>
+			<a href="history.html" class="MenuItem">History</a>
+			<a href="download.html" class="MenuItem">Download</a>
+			<a href="development.html" class="MenuItem">Development</a>
+			<br />
+
+			<span class="MenuHdr">Tools</span>
+			<a href="swapscreen.html" class="MenuItem">Swap Screen</a>
+			<a href="duallauncher.html" class="MenuItem">Dual Launcher</a>
+			<a href="dualwallpaper.html" class="MenuItem">Dual Wallpaper</a>
+			<a href="dualwallpaperchanger.html" class="MenuItem">Dual Wallpaper Changer</a>
+			<span class="CurPage">DisMon</span>
+			<a href="dualsnap.html" class="MenuItem">Dual Snap</a>
+			<br />
+
+			<a href="http://sourceforge.net/projects/dualmonitortool">
+				<img src="http://sflogo.sourceforge.net/sflogo.php?group_id=252267&amp;type=2" width="125" height="37" alt="SourceForge.net Logo"/>
+			</a>
+		</div>
+
+<div id="content">
+
+<p class="AppTitle">
+	<img src="Images/DisMon_48_24.png" class="AppLogo" alt="DisMon" />
+	DisMon
+</p>
+
+
+<p class="SubHeading">Warning</p>
+
+<p class="Warning">DisMon should be considered as a work in progress.
+If you don't really need any of its functionality, then it is safer to not run it at all, as it can cause problems in
+some circumstances.
+</p>
+
+<p>DisMon gives you some control over which monitors are disabled and which is the primary monitor when running another application.</p>
+<p>This can be useful for example when running some games where when you
+move the mouse to the edge of the screen, the mouse moves to the other screen rather than scrolling the view.</p>
+<p>DisMon can be used with Windows XP, Vista and Windows 7.  (Windows 7 users who previously had to use DisMon7 should note 
+that they should now use DisMon.)</p>
+<p>If you run DisMon without any parameters,
+then you are presented with a GUI that allows you to manually disable and re-enable the secondary monitors.
+If you use Windows 7, then some of this functionality is already provided by the &lt;Win&gt;+P hotkey.</p>
+
+<p class="SubHeading">Usage</p>
+
+<p>If you run this from the command line or as a shortcut, then the general format of the command is:<br/>
+<b>&lt;Path to DisMon executable&gt; [Options for DisMon] &lt;Path to command to run&gt; [&lt;Parameters for command&gt;]</b>
+</p>
+
+<p>
+DisMon options start with a '<b>-</b>'.  There are 2 types of options: screen dependent options and general options. The screen dependent options have the screen number following the '<b>-</b> with '<b>1</b>' being the first screen. The screen number is then followed
+by one or more characters indicating the options to apply to that screen.  Currently there are only two options:<br/>
+'<b>d</b>' disables the screen<br/>
+'<b>p</b>' makes the screen the primary screen
+</p>
+
+<p>
+So for example, to disable the first screen and to make the second screen the primary screen, the options to use would be:
+<b>-1d -2p</b>.
+</p>
+
+<p>
+There are 2 general options:<br/>
+'<b>n</b>' don't restore the screens on exit<br/>
+'<b>x</b>' apply the changes and exit immediately
+</p>
+
+<p>
+If no options are specified, then the default behaviour is to disable all secondary monitors.
+</p>
+
+<p>The first parameter after any options is the name of an application to run.
+Any further parameters will be automatically passed to this application being run.</p>
+
+<p>Before starting the application, DisMon will perform the actions specified by its options.  
+When the application has finished running, it will restore the monitors to their original state.</p>
+
+<p>Probably the easiest way to do this is to setup a shortcut to the application you want to run, 
+then edit the shortcut and in the 'Target' insert the full executable path to DisMon and any options you need to specify.</p>
+
+<p>For example, if DisMon is located in <b>C:\tools</b> and the application that you want to run 
+with the secondary monitors disabled is <b>C:\Supreme Commander\SupremeCommander.exe</b>
+then you would set the target to:</p>
+<pre>
+C:\tools\DisMon.exe "C:\Supreme Commander\SupremeCommander.exe"
+</pre>
+or if you wanted to explicitly disable the second monitor, you could use:
+<pre>
+C:\tools\DisMon.exe -2d "C:\Supreme Commander\SupremeCommander.exe"
+</pre>
+or if you wanted to run it on the second monitor and to disable the first monitor, you would use:
+<pre>
+C:\tools\DisMon.exe -1d -2p "C:\Supreme Commander\SupremeCommander.exe"
+</pre>
+
+
+
+<p>Remember that any paths or arguments that contain spaces need to be enclosed within double quotes as in
+the above example.</p>
+<p>Now whenever you run this shortcut, it will run the application after performing any actions specified in the options.</p>
+
+
+<p class="SubHeading">DisMon GUI</p>
+
+<p>When you launch DisMon with no parameters it will show the following window:</p>
+<img src="Images/DisMon.png" alt="DisMon window" />
+<p>This allows you to change which is the primary monitor and also to disable the secondary monitor in dual monitor setups. 
+When DisMon is closed, the original state of the monitors will be restored.</p>
+
+<p class="SubHeading">Further Work</p>
+
+<p>DisMon is still in the early stages of development.  
+If there is any particular feature you want added, then please use the
+<a href="http://sourceforge.net/projects/dualmonitortool/forums/forum/914325">Dual Monitor Tools Open Discussion forum</a>
+to leave your sugestion.</p>
+
+<p class="SubHeading">Known Problems</p>
+<p>In Windows 7, if the primary screen is disabled (in the GUI this is equivalent to pressing the button in the bottom right), then later changes can lead to unpredictable results, eg. one of the screens can be permanently disabled until it is re-enabled using Windows (or your Graphics card) control panel.<br/>
+In Windows XP, when another screen is made the primary screen, the taskbar is not moved onto that screen unless the original screen is disabled.
+</p>
+
+
+</div>
+
+</div>
+	<div id="footer">
+		<div id="footer-left">
+		</div>
+		<div id="footer-right">
+		last updated 6 Feb 2015
+		</div>
+	</div>
+</div>
+</body>
+</html>
+

@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="description" content="Project page for Dual Monitor Tools." />
+<meta name="keywords" content="Dual Monitor Tools, swap screen, swapscreen, multi, screen, display" />
+<meta name="author" content="Gerald Evans" />
+<link rel="STYLESHEET" type="text/css" href="DualMonitorTools.css" />
+<title>Dual Monitor Tools - Download page</title>
+</head>
+
+<body>
+	
+	<div id="page">
+
+		<div id="header">
+			<div id="header-logo">
+				<a href="index.html">
+					<img src="Images/dual_96_48.png" alt="Dual Monitor Tools" />
+				</a>
+			</div>
+
+			<div id="header-title">
+				<p class="HdrTitleBig">
+				Dual Monitor Tools
+				</p>
+			</div>
+		</div>
+
+		<div id="body">
+		<div id="navigation">
+			<span class="MenuTop"></span>
+			<a href="index.html" class="MenuItem">Home</a>
+			<a href="history.html" class="MenuItem">History</a>
+			<span class="CurPage">Download</span>
+			<a href="development.html" class="MenuItem">Development</a>
+			<br />
+
+			<span class="MenuHdr">Tools</span>
+			<a href="dmt.html" class="MenuItem">DMT</a>
+			<a href="dmt_general.html" class="MenuItem">DMT - General</a>
+			<a href="dmt_cursor.html" class="MenuItem">DMT - Cursor</a>
+			<a href="dmt_launcher.html" class="MenuItem">DMT - Launcher</a>
+			<a href="dmt_snap.html" class="MenuItem">DMT - Snap</a>
+			<a href="dmt_swapscreen.html" class="MenuItem">DMT - Swap Screen</a>
+			<a href="dmt_wallpaperchanger.html" class="MenuItem">DMT - Wallpaper Changer</a>
+			<a href="dmt_screensaver.html" class="MenuItem">DMT Screen Saver</a>
+			<a href="dualwallpaper.html" class="MenuItem">Dual Wallpaper</a>
+			<br />
+
+			<a href="http://sourceforge.net/projects/dualmonitortool">
+				<img src="http://sflogo.sourceforge.net/sflogo.php?group_id=252267&amp;type=2" width="125" height="37" alt="SourceForge.net Logo"/>
+			</a>
+		</div>
+
+<div id="content">
+
+<p class="SubHeading">Requirements</p>
+
+<p>Dual Monitor Tools will work with any version of Windows that has Microsoft .NET Framework version 4.0 or later installed.</p>
+<p>If you do not have a suitable version of .NET installed, then assuming your version of Windows supports it, 
+you can install it from Windows Update.  You should be able to find it in the
+<i>Optional Updates</i> section.</p>
+<p>Dual Monitor Tools has been tested and found to work on Windows 7, 8, 8.1, 10 and 11, 
+but not all features will be available with some of the older versions of Windows.</p>
+
+<p class="SubHeading">Download</p>
+
+<p>Dual Monitor Tools is hosted by <a href="http://sourceforge.net">SourceForge.Net</a> and the latest version
+may be downloaded from <a href="http://sourceforge.net/project/platformdownload.php?group_id=252267">here</a>.</p>
+
+<p class="SubHeading">Installation</p>
+
+<p>There are 2 choices for installation:
+<ul>
+	<li>Use the msi installer.  This is the simplest method and will make
+	installing any future versions even easier.</li>
+	<li>Portable install.
+This involves more work but gives you the most flexibility and is the route to use if you
+are installing to a portable device.</li>
+</ul>
+</p>
+
+
+<p class="SubHeading">Msi Installation for new users and to upgrade previous msi installs</p>
+
+<p>Just download the latest msi file and run it.</p>
+
+
+<p class="SubHeading">Msi installation to upgrade previous zip installs</p>
+
+<p>With a msi installation, the executable and configuration files will live
+in different locations, so there are some extra steps that you need to go
+through if you wish to keep your existing configuration:
+<ol>
+	<li>In your existing version of DMT, make sure "Start when Windows starts"
+    (found in Options-&gt;Dual Monitor Tools-&gt;General) is not ticked.</li>
+	<li>Make sure DMT is not currently running.</li>
+	<li>Make sure you have a backup copy of the following configuration files:
+	<i>DmtMagicWords.xml</i>,
+	<i>DmtSettings.xml</i> and
+	<i>DmtWallpaperProviders.xml</i>.
+    These would normally be in the same directory that you previously installed
+    Dual Monitor Tools too.</li>
+	<li>Download and run the new msi installer.</li>
+	<li>Double click on DMT in the notification area.</li>
+	<li>Select the 'General' page under 'Dual Monitor Tools'.
+    This will show the location where the configuration files now live.
+    The files will be in the '%appdata%\Dual Monitor Tools' folder, which should
+    be something like:
+    'C:\Users\&lt;your login name&gt;\AppData\Roaming\Dual Monitor Tools'</li>
+	<li>Stop DMT.</li>
+	<li>Copy the 3 xml files into the above location.</li>
+	<li>Start DMT. There should be an option in the Start menu to do this.</li>
+	<li>Don't forget to tick the "Start when Windows starts" option if required.</li>
+</ol>
+
+Note: future updates will be much simpler as they can be performed from within
+DMT.
+</p>
+
+<p class="SubHeading">Portable installation</p>
+
+<p>
+<ol>
+	<li>Download the zip file.</li>
+	<li>If you are already running the files from a previous version, then stop
+    them.</li>
+	<li>Unzip the zip file to your desired location.</li>
+	<li>The tools are now ready to run.  You may need to give Windows permission
+    to run the files as they were downloaded from the internet.</li>
+</ol>
+</p>
+
+
+<p class="SubHeading">Running</p>
+
+<p>If when you run any of the tools, you get a message along the lines of
+<i>The dynamic link library mscoree.dll could not be found...</i>
+then this probably means you do not have .NET 4.0 installed.</p>
+
+<p>See the tool specific pages to see how to use each tool.</p>
+
+<p class="SubHeading">Uninstall of msi installation</p>
+
+<p>You can uninstall from within Windows installed application list.
+Any saved settings will need to be removed manually by deleting
+the folder '%APPDATA%\Dual Monitor Tools'.</p>
+
+
+<p class="SubHeading">Uninstall of portable installation</p>
+
+<p>If you have set the 'Start when Windows starts' in the options, then you
+will need to turn this off before removing anything.</p>
+
+<p>Then make sure none of the tools are running, and you can just delete
+the tools and their data files.</p>
+
+
+</div>
+
+</div>
+	<div id="footer">
+		<div id="footer-left">
+		</div>
+		<div id="footer-right">
+		last updated 12 Sep 2026
+		</div>
+	</div>
+</div>
+</body>
+</html>
+

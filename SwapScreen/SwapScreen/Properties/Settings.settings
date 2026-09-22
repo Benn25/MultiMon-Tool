@@ -1,0 +1,90 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SwapScreen.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="HotKeyValue" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">131195</Value>
+    </Setting>
+    <Setting Name="NeedSettingsUpgrade" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="PrevScreenHotKey" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="MinimiseHotKey" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="MinimiseAllButHotKey" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="MaximiseHotKey" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="SupersizeHotKey" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="RotateNextHotKey" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="ShowDesktop1HotKey" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="ShowDesktop2HotKey" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="RotatePrevHotKey" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="FreeCursorHotKey" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="StickyCursorHotKey" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="LockCursorHotKey" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="CursorNextScreenHotKey" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="CursorPrevScreenHotKey" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="MinStickyForce" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1000</Value>
+    </Setting>
+    <Setting Name="ControlUnhindersCursor" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="DefaultCursorType" Provider="SwapScreen.PortableFileSettingsProvider" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="ReduceMemSizeOnStartup" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="PrimaryReturnUnhindered" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="UdaHotKeys" Type="System.Collections.Specialized.StringCollection" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SwapTop2HotKey" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="SnapLeftHotKey" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="SnapRightHotKey" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="SnapUpHotKey" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="SnapDownHotKey" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">16777216</Value>
+    </Setting>
+    <Setting Name="FreeCursorMovementKey" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">162</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
