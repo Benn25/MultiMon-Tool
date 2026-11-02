@@ -175,17 +175,6 @@ namespace DMT.Modules.General
 			}
 		}
 
-		/// <summary>
-		/// Gets a temporary path to save the msi installer to
-		/// </summary>
-		public string TempMsiInstallPath
-		{
-			get
-			{
-				return Path.Combine(Path.GetTempPath(), "DualMonitorTools.msi");
-			}
-		}
-
 		public Monitor.EMonitorOrder MonitorOrder 
 		{ 
 			get

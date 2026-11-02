@@ -53,7 +53,7 @@ namespace DMT.Modules.WallpaperChanger.Plugins.Flickr
 
 		private void linkLabelFlickr_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			ProcessStartInfo sInfo = new ProcessStartInfo(e.Link.LinkData.ToString());
+			ProcessStartInfo sInfo = new ProcessStartInfo(e.Link.LinkData.ToString()) { UseShellExecute = true };
 			Process.Start(sInfo);
 		}
 

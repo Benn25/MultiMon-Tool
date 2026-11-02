@@ -201,7 +201,7 @@ namespace DMT.Library.Settings
 			{
 				if (File.Exists(filename))
 				{
-					using (Stream stream = File.Open(filename, FileMode.Open))
+					using (Stream stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
 					{
 						SettingsReader reader = new SettingsReader();
 						settings = reader.Read(stream);
@@ -217,7 +217,15 @@ namespace DMT.Library.Settings
 
 		void LoadSettings()
 		{
-			_settings = Load(GetSettingsFilename());
+			string filename = GetSettingsFilename();
+			_settings = Load(filename);
+
+			if (_settings.Count == 0)
+			{
+				// settings file is missing, empty or unreadable (e.g. power lost while saving)
+				// so fall back to the backup rather than silently starting with defaults
+				_settings = Load(SafeFileWriter.GetBackupFilename(filename));
+			}
 		}
 
 		string GetDictionaryName(string moduleName, string settingName)

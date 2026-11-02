@@ -51,6 +51,15 @@ namespace DMT.Modules.Cursor
 		NativeMethods.HookProc llKeyboardProc;
 		IntPtr llKeyboardHook = IntPtr.Zero;
 
+		// Windows silently removes low level hooks that take too long to respond,
+		// so we periodically check that the mouse hook is still being called.
+		// These are only accessed on the hooks thread.
+		const int HookWatchdogInterval = 2000;	// in ms
+		Timer _hookWatchdogTimer;
+		int _mouseCallbackCount;
+		int _lastWatchdogCallbackCount;
+		Point _lastWatchdogCursorPos;
+
 		// Barriers which constrain the cursor movement
 		CursorBarrierLower _leftBarrier = new CursorBarrierLower(false, 0, 0);
 		CursorBarrierUpper _rightBarrier = new CursorBarrierUpper(false, 0, 0);
@@ -216,10 +225,43 @@ namespace DMT.Modules.Cursor
 			// Let calling thread know that the control has been created
 			_hooksThreadControlEwh.Set();
 
+			_hookWatchdogTimer = new Timer();
+			_hookWatchdogTimer.Interval = HookWatchdogInterval;
+			_hookWatchdogTimer.Tick += HookWatchdogTimer_Tick;
+			_hookWatchdogTimer.Start();
+
 			Application.Run();
+
+			_hookWatchdogTimer.Stop();
+			_hookWatchdogTimer.Dispose();
 
 			UnHookKeyboard();
 			UnHookMouse();
+		}
+
+		// Runs on the hooks thread.
+		// If the cursor has moved but our mouse hook hasn't been called,
+		// then Windows has removed the hook, so we need to re-install it.
+		void HookWatchdogTimer_Tick(object sender, EventArgs e)
+		{
+			Point cursorPos = System.Windows.Forms.Cursor.Position;
+
+			if (llMouseHook != IntPtr.Zero)
+			{
+				if (cursorPos != _lastWatchdogCursorPos && _mouseCallbackCount == _lastWatchdogCallbackCount)
+				{
+					// The cursor can also be moved programmatically without calling the hook,
+					// in which case the re-hook is unnecessary, but harmless.
+					// The keyboard hook will have suffered the same fate, so re-install both.
+					UnHookMouse();
+					UnHookKeyboard();
+					UpdateHooks();
+					ReBuildBarriers();
+				}
+			}
+
+			_lastWatchdogCursorPos = cursorPos;
+			_lastWatchdogCallbackCount = _mouseCallbackCount;
 		}
 
 		// rebuild the barriers based on the current cursor position
@@ -481,6 +523,12 @@ namespace DMT.Modules.Cursor
 		// as it can be called very frequently.
 		public int llMouseHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
 		{
+			// let the watchdog know that we are still hooked
+			unchecked
+			{
+				_mouseCallbackCount++;
+			}
+
 			if (nCode >= 0)
 			{
 				// lParam is a pointer to a MSLLHOOKSTRUCT, 

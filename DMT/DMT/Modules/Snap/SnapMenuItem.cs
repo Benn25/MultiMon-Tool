@@ -63,6 +63,7 @@ namespace DMT.Modules.Snap
 		/// <summary>
 		/// Gets or sets the snap displayed in this menu item
 		/// </summary>
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
 		public Snap Snap { get; set; }
 
 		protected override void OnPaint(PaintEventArgs e)

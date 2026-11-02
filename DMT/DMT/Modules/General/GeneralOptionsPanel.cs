@@ -102,11 +102,5 @@ namespace DMT.Modules.General
 				_generalModule.InDesktopContextMenu = checkBoxContextMenu.Checked;
 			}
 		}
-
-		private void buttonCheckUpdates_Click(object sender, EventArgs e)
-		{
-			CheckUpdatesForm dlg = new CheckUpdatesForm(_generalModule);
-			dlg.ShowDialog(this);
-		}
 	}
 }

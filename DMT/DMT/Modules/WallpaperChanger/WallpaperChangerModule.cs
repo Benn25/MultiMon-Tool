@@ -61,6 +61,9 @@ namespace DMT.Modules.WallpaperChanger
 		bool _paused = false;
 		int _minutesSinceLastChange = 0;
 
+		// non-zero while a wallpaper update thread is running
+		int _updateInProgress = 0;
+
 		WallpaperChangerGeneralOptionsPanel _generalOptionsPanel;
 		WallpaperChangerPropertiesOptionsPanel _propertiesOptionsPanel;
 
@@ -367,6 +370,12 @@ namespace DMT.Modules.WallpaperChanger
 		/// </summary>
 		public void UpdateWallpaper()
 		{
+			// only allow one update at a time, as the providers and image repository are not thread safe
+			if (Interlocked.CompareExchange(ref _updateInProgress, 1, 0) != 0)
+			{
+				return;
+			}
+
 			Thread t = new Thread(new ThreadStart(UpdateWallpaperThread));
 			t.IsBackground = true;
 			t.SetApartmentState(ApartmentState.STA);
@@ -522,6 +531,10 @@ namespace DMT.Modules.WallpaperChanger
 			{
 				ok = false;
 				errMsg = ex.Message;
+			}
+			finally
+			{
+				Interlocked.Exchange(ref _updateInProgress, 0);
 			}
 
 			// inform UI that wallpaper has now been updated

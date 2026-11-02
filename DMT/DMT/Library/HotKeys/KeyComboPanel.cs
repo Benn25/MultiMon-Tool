@@ -48,6 +48,7 @@ namespace DMT.Library.HotKeys
 		/// Gets or sets the KeyCombo in the panel,
 		/// or to retrieve the KeyCombo currently shown in the panel.
 		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public KeyCombo KeyCombo
 		{
 			get
@@ -64,6 +65,7 @@ namespace DMT.Library.HotKeys
 		/// <summary>
 		/// Sets a value indicating whether the Win modifier key is allowed
 		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public bool AllowWin
 		{
 			// TODO: use Enabled or Visible?

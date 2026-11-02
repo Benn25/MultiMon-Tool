@@ -495,6 +495,48 @@ namespace DMT.Library.GuiUtils
 		}
 		#endregion Public Helpers
 
+		/// <summary>
+		/// Gets the rectangle (in workspace co-ords) that the window currently occupies when it is in its normal state.
+		/// For windows that have been arranged (Aero snapped) rcNormalPosition holds the size the window was
+		/// before it was snapped, so in this case we use the actual window rectangle instead.
+		/// </summary>
+		/// <param name="hWnd">HWND of window</param>
+		/// <param name="windowPlacement">Window placement already obtained for the window</param>
+		/// <returns>Normal rectangle in workspace co-ords</returns>
+		static Rectangle GetCurrentNormalRect(IntPtr hWnd, ref NativeMethods.WINDOWPLACEMENT windowPlacement)
+		{
+			Rectangle normalRect = RectToRectangle(ref windowPlacement.rcNormalPosition);
+
+			if (windowPlacement.showCmd == NativeMethods.SW_SHOWNORMAL)
+			{
+				NativeMethods.RECT windowRect;
+				if (NativeMethods.GetWindowRect(hWnd, out windowRect))
+				{
+					Rectangle actualRect = RectToRectangle(ref windowRect);
+					if (actualRect.Size != normalRect.Size)
+					{
+						// window has been arranged (snapped), so use where it really is
+						normalRect = ToWorkspaceCoordinates(actualRect);
+					}
+				}
+			}
+
+			return normalRect;
+		}
+
+		/// <summary>
+		/// Determines if DWM has cloaked the window (e.g. a suspended UWP app),
+		/// in which case it is not really visible even though it has WS_VISIBLE
+		/// </summary>
+		/// <param name="hWnd">HWND of window</param>
+		/// <returns>True if cloaked</returns>
+		static bool IsCloaked(IntPtr hWnd)
+		{
+			int cloaked;
+			int hr = NativeMethods.DwmGetWindowAttribute(hWnd, NativeMethods.DWMWA_CLOAKED, out cloaked, sizeof(int));
+			return hr == 0 && cloaked != 0;
+		}
+
 		#region Private Helpers
 		/// <summary>
 		/// Gets a list of all windows that we think should be allowed
@@ -623,6 +665,10 @@ namespace DMT.Library.GuiUtils
 					{
 						// window is on another virtual desktop, so leave alone
 					}
+					else if (IsCloaked(hWnd))
+					{
+						// window is visible but cloaked by DWM (e.g. suspended UWP app), so leave alone
+					}
 					else
 					{
 						// we should be able to move this window without any ill effect
@@ -700,7 +746,7 @@ namespace DMT.Library.GuiUtils
 					// 3. check top of window is not above the new screen
 					if (otherRect.Top < otherScreen.Bounds.Top)
 					{
-						otherRect.Offset(otherScreen.Bounds.Top - otherRect.Top, 0);
+						otherRect.Offset(0, otherScreen.Bounds.Top - otherRect.Top);
 					}
 				}
 			}
@@ -779,7 +825,7 @@ namespace DMT.Library.GuiUtils
 		{
 			NativeMethods.WINDOWPLACEMENT windowPlacement = new NativeMethods.WINDOWPLACEMENT();
 			GetWindowPlacement(hWnd, ref windowPlacement);
-			Rectangle curRect = RectToRectangle(ref windowPlacement.rcNormalPosition);
+			Rectangle curRect = GetCurrentNormalRect(hWnd, ref windowPlacement);
 			Rectangle newRect = TransfromRectToOtherScreen(ref curRect, deltaScreenIndex);
 			uint oldShowCmd = windowPlacement.showCmd;
 			if (oldShowCmd == NativeMethods.SW_SHOWMINIMIZED || oldShowCmd == NativeMethods.SW_SHOWMAXIMIZED)
@@ -813,7 +859,7 @@ namespace DMT.Library.GuiUtils
 		{
 			NativeMethods.WINDOWPLACEMENT windowPlacement = new NativeMethods.WINDOWPLACEMENT();
 			GetWindowPlacement(hWnd, ref windowPlacement);
-			Rectangle curRect = RectToRectangle(ref windowPlacement.rcNormalPosition);
+			Rectangle curRect = GetCurrentNormalRect(hWnd, ref windowPlacement);
 			int curMonitorIndex = Monitor.AllMonitors.MonitorIndexFromRectangle(curRect);
 			if (monitorIndex != curMonitorIndex)
 			{
@@ -854,7 +900,7 @@ namespace DMT.Library.GuiUtils
 			NativeMethods.WINDOWPLACEMENT windowPlacement = new NativeMethods.WINDOWPLACEMENT();
 			GetWindowPlacement(hWnd, ref windowPlacement);
 			int style = NativeMethods.GetWindowLong(hWnd, NativeMethods.GWL_STYLE);
-			Rectangle curRect = RectToRectangle(ref windowPlacement.rcNormalPosition);
+			Rectangle curRect = GetCurrentNormalRect(hWnd, ref windowPlacement);
 			// convert to screen coords
 			curRect = FromWorkspaceCoordinates(curRect);
 			uint oldShowCmd = windowPlacement.showCmd;
@@ -917,7 +963,7 @@ namespace DMT.Library.GuiUtils
 			NativeMethods.WINDOWPLACEMENT windowPlacement = new NativeMethods.WINDOWPLACEMENT();
 			GetWindowPlacement(hWnd, ref windowPlacement);
 			int style = NativeMethods.GetWindowLong(hWnd, NativeMethods.GWL_STYLE);
-			Rectangle curRect = RectToRectangle(ref windowPlacement.rcNormalPosition);
+			Rectangle curRect = GetCurrentNormalRect(hWnd, ref windowPlacement);
 			// convert to screen coords
 			curRect = FromWorkspaceCoordinates(curRect);
 			uint oldShowCmd = windowPlacement.showCmd;

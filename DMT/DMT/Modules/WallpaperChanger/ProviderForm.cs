@@ -56,6 +56,7 @@ namespace DMT.Modules.WallpaperChanger
 		/// <summary>
 		/// Gets or sets the currently selected provider
 		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public string SelectedProviderName { get; set; }
 
 		private void dataGridView_CellDoubleClick(object sender, DataGridViewCellEventArgs e)

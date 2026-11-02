@@ -38,6 +38,7 @@ namespace DMT.Modules.General
 {
 	public partial class ChangeOrientationForm : Form
 	{
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public int NewOrientation { get; set; }
 
 		int _monitorIndex;

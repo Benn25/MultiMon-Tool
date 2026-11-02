@@ -246,7 +246,7 @@ namespace DMT.Modules.Snap
 		public void TakeActiveWindowSnap()
 		{
 			IntPtr hWnd = NativeMethods.GetForegroundWindow();
-			if (hWnd != null)
+			if (hWnd != IntPtr.Zero)
 			{
 				NativeMethods.RECT rect;
 				if (NativeMethods.GetWindowRect(hWnd, out rect))

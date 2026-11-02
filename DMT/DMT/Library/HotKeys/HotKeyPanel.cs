@@ -48,6 +48,7 @@ namespace DMT.Library.HotKeys
 		/// Gets or sets the description of the hotkey
 		/// </summary>
 		[Description("Description of hotkey"), Category("Data")]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		public string Description
 		{
 			get { return labelDescription.Text; }

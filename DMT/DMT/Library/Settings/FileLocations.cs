@@ -114,7 +114,8 @@ namespace DMT.Library.Settings
 
 		void LoadFileLocations()
 		{
-			ExecutableFilename = Assembly.GetExecutingAssembly().Location;
+			// Assembly.Location would give DMT.dll rather than DMT.exe
+			ExecutableFilename = System.Environment.ProcessPath;
 			_homeDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
 			// by default, we use the home directory as the data directory to simplify portable usage

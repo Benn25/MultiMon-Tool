@@ -355,6 +355,15 @@ namespace DMT.Library.PInvoke
 		[DllImport("user32.dll")]
 		public static extern int CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
 
+		[DllImport("kernel32.dll", SetLastError = true)]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		public static extern bool CloseHandle(IntPtr hObject);
+
+		public const int DWMWA_CLOAKED = 14;
+
+		[DllImport("dwmapi.dll")]
+		public static extern int DwmGetWindowAttribute(IntPtr hwnd, int dwAttribute, out int pvAttribute, int cbAttribute);
+
 		//[DllImport("user32.dll")]
 		//[return: MarshalAs(UnmanagedType.Bool)]
 		//public static extern bool ClipCursor(ref RECT lpRect);

@@ -54,9 +54,6 @@ namespace DMT
 		/// </summary>
 		public AppForm()
 		{
-			// make sure that TLS 1.2 is supported
-			DMT.Library.Html.NetHelper.InitServicePointManager();
-
 			InitializeComponent();
 
 			InitContextMenu();
@@ -324,7 +321,7 @@ namespace DMT
 		{
 			try
 			{
-				System.Diagnostics.Process.Start("http://dualmonitortool.sourceforge.net");
+				System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://dualmonitortool.sourceforge.net") { UseShellExecute = true });
 			}
 			catch (Exception ex)
 			{

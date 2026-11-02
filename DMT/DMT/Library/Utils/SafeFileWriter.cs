@@ -48,7 +48,8 @@ namespace DMT.Library.Utils
 		/// <returns>The stream we can write to</returns>
 		public Stream OpenForWriting()
 		{
-			return File.Open(GetTempFilename(), FileMode.Create);
+			// write through so the data is on disk before we swap the files over
+			return new FileStream(GetTempFilename(), FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough);
 		}
 
 		/// <summary>
@@ -57,24 +58,28 @@ namespace DMT.Library.Utils
 		public void CompleteWrite()
 		{
 			// assumes stream returned by OpenForWriting() has been closed
-			if (File.Exists(_filename))
-			{
-				// file already exists, so take a backup first
-				string backupFilename = GetBackupFilename();
-				if (File.Exists(backupFilename))
-				{
-					// a old backup already exists, so remove this
-					File.Delete(backupFilename);
-				}
-
-				// can rename existing file as the backup file
-				File.Move(_filename, backupFilename);
-			}
-
 			string tempFilename = GetTempFilename();
 
-			// can now rename the newly written temp file to become the new file
-			File.Move(tempFilename, _filename);
+			if (File.Exists(_filename))
+			{
+				// swap the new file in and keep the old one as the backup in a single operation,
+				// so there is never a moment where neither file exists
+				File.Replace(tempFilename, _filename, GetBackupFilename());
+			}
+			else
+			{
+				File.Move(tempFilename, _filename);
+			}
+		}
+
+		/// <summary>
+		/// Gets the name of the backup file used for the specified file
+		/// </summary>
+		/// <param name="filename">Filename being written</param>
+		/// <returns>Backup filename</returns>
+		public static string GetBackupFilename(string filename)
+		{
+			return Path.ChangeExtension(filename, "bak");
 		}
 
 		string GetTempFilename()
@@ -84,7 +89,7 @@ namespace DMT.Library.Utils
 
 		string GetBackupFilename()
 		{
-			return Path.ChangeExtension(_filename, "bak");
+			return GetBackupFilename(_filename);
 		}
 	}
 }

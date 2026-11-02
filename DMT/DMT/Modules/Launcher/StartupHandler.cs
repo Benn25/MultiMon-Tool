@@ -131,6 +131,10 @@ namespace DMT.Modules.Launcher
 					AddPendingMove(pi.dwProcessId, magicWord, startPosition, startupTimeout);
 					NativeMethods.ResumeThread(pi.hThread);
 
+					// we only need the pid, so release the handles CreateProcess gave us
+					NativeMethods.CloseHandle(pi.hThread);
+					NativeMethods.CloseHandle(pi.hProcess);
+
 					ret = true;
 				}
 				else

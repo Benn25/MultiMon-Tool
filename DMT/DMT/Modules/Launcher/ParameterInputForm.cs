@@ -45,11 +45,13 @@ namespace DMT.Modules.Launcher
 		/// <summary>
 		/// Gets or sets the prompt for the parameter
 		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public string ParameterPrompt { get; set; }
 
 		/// <summary>
 		/// Gets or sets the value the user entered for the parameter
 		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public string ParameterValue { get; protected set; }
 	
 		private void ParameterInputForm_Load(object sender, EventArgs e)

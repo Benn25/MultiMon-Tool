@@ -42,7 +42,6 @@
 			this.textBoxSettings = new System.Windows.Forms.TextBox();
 			this.label1 = new System.Windows.Forms.Label();
 			this.groupBox2 = new System.Windows.Forms.GroupBox();
-			this.buttonCheckUpdates = new System.Windows.Forms.Button();
 			this.labelInstallType = new System.Windows.Forms.Label();
 			this.label8 = new System.Windows.Forms.Label();
 			this.labelVersion = new System.Windows.Forms.Label();
@@ -190,7 +189,6 @@
 			// 
 			this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.groupBox2.Controls.Add(this.buttonCheckUpdates);
 			this.groupBox2.Controls.Add(this.labelInstallType);
 			this.groupBox2.Controls.Add(this.label8);
 			this.groupBox2.Controls.Add(this.labelVersion);
@@ -201,17 +199,6 @@
 			this.groupBox2.TabIndex = 9;
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "Installed Version";
-			// 
-			// buttonCheckUpdates
-			// 
-			this.buttonCheckUpdates.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonCheckUpdates.Location = new System.Drawing.Point(322, 28);
-			this.buttonCheckUpdates.Name = "buttonCheckUpdates";
-			this.buttonCheckUpdates.Size = new System.Drawing.Size(143, 23);
-			this.buttonCheckUpdates.TabIndex = 4;
-			this.buttonCheckUpdates.Text = "Check for Updates";
-			this.buttonCheckUpdates.UseVisualStyleBackColor = true;
-			this.buttonCheckUpdates.Click += new System.EventHandler(this.buttonCheckUpdates_Click);
 			// 
 			// labelInstallType
 			// 
@@ -353,7 +340,6 @@
 		private System.Windows.Forms.TextBox textBoxExecutable;
 		private System.Windows.Forms.Label label5;
 		private System.Windows.Forms.GroupBox groupBox2;
-		private System.Windows.Forms.Button buttonCheckUpdates;
 		private System.Windows.Forms.Label labelInstallType;
 		private System.Windows.Forms.Label label8;
 		private System.Windows.Forms.Label labelVersion;

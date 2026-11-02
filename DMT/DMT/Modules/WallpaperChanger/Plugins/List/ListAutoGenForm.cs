@@ -19,6 +19,7 @@ namespace DMT.Modules.WallpaperChanger.Plugins.List
 		/// Sets the initial list fnm to display
 		/// Gets the user entered list fnm
 		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public string ListFnm { get; set; }
 
 		public ListAutoGenForm()

@@ -56,6 +56,11 @@ namespace DMT
 			//}
 #endif
 
+			// Sets PerMonitorV2 DPI awareness, visual styles and default font (see DMT.csproj).
+			// Done before anything else, as the command line commands also need
+			// DPI awareness to see the real screen co-ordinates.
+			ApplicationConfiguration.Initialize();
+
 			ProgramOptions programOptions = new ProgramOptions(args);
 
 			if (programOptions.CmdMode)
@@ -98,8 +103,6 @@ namespace DMT
 			Application.ThreadException += Application_ThreadException;
 			AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
-			Application.EnableVisualStyles();
-			Application.SetCompatibleTextRenderingDefault(false);
 			AppForm appForm = new AppForm();
 			Application.Run();
 		}

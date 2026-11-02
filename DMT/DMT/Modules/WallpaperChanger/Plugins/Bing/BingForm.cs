@@ -49,7 +49,7 @@ namespace DMT.Modules.WallpaperChanger.Plugins.Bing
 
 		private void linkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			ProcessStartInfo sInfo = new ProcessStartInfo(e.Link.LinkData.ToString());
+			ProcessStartInfo sInfo = new ProcessStartInfo(e.Link.LinkData.ToString()) { UseShellExecute = true };
 			Process.Start(sInfo);
 		}
 

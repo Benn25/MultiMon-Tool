@@ -30,6 +30,7 @@ namespace DMT.Modules.General
 {
 	public partial class EditMonitorNameForm : Form
 	{
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public string MonitorName {
 			get
 			{
