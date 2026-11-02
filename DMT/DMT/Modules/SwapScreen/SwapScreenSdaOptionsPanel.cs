@@ -1,296 +1,459 @@
 ﻿#region copyright
 // This file is part of Dual Monitor Tools which is a set of tools to assist
 // users with multiple monitor setups.
-// Copyright (C) 2017  Gerald Evans
-// 
+// Copyright (C) 2015  Gerald Evans
+//
 // Dual Monitor Tools is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
+using DMT.Library.Environment;
 using DMT.Library.HotKeys;
+using DMT.Library.Ui;
 
 namespace DMT.Modules.SwapScreen
 {
-	partial class SwapScreenSdaOptionsPanel : UserControl
+	/// <summary>
+	/// Settings for the numpad zones (System Defined Areas):
+	/// a modifier key per screen used together with the numeric keypad
+	/// to move the active window to a full, half or quarter screen.
+	/// </summary>
+	class SwapScreenSdaOptionsPanel : SettingsPage
 	{
-		class ModifierItem
+		/// <summary>
+		/// The modifiers that can be assigned to screens, in the order they are given out
+		/// </summary>
+		static readonly uint[] DefaultSdaModifiers =
 		{
-			public uint Modifier { get; private set; }
-
-			public ModifierItem(uint modifier)
-			{
-				Modifier = modifier;
-			}
-
-			public override string ToString()
-			{
-				KeyCombo keyCombo = new KeyCombo(Modifier);
-				return keyCombo.GetModifierName();
-			}
-		}
-
-		SwapScreenModule _swapScreenModule;
-		bool _loading = false;
-
-		uint[] defaultSdaModifiers = 
-		{
-			// Shift key doesn't seem to work when used with the numpad (on Win 10)
-
+			// Shift doesn't tend to work with the numpad (Num Lock turns Shift+Num7 into Home etc.)
 			KeyCombo.FlagControl,
 			KeyCombo.FlagWin,
 			KeyCombo.FlagAlt,
-			//KeyCombo.FlagShift, - doesn't tend to work
-
-			// add all 2 modifier combination
-			//KeyCombo.FlagShift | KeyCombo.FlagControl, - doesn't tend to work
-			//KeyCombo.FlagShift | KeyCombo.FlagWin, - doesn't tend to work
-			//KeyCombo.FlagShift | KeyCombo.FlagAlt, - doesn't tend to work
 			KeyCombo.FlagWin | KeyCombo.FlagControl,
 			KeyCombo.FlagWin | KeyCombo.FlagAlt,
 			KeyCombo.FlagControl | KeyCombo.FlagAlt,
-
-			// add select 3 modifier combinations, but these are tricky to press
+			// tricky to press, but available for setups with lots of screens
 			KeyCombo.FlagControl | KeyCombo.FlagWin | KeyCombo.FlagAlt
-
 		};
 
+		SwapScreenModule _swapScreenModule;
+		bool _loading;
+
+		InfoBar _numLockBar;
+		InfoBar _errorBar;
+		ToggleSwitch _enableSwitch;
+		ToggleSwitch _borderSwitch;
+		MonitorMap _monitorMap;
+		NumpadView _numpad;
+		TextBlock _zoneCaption;
+		TextBlock _screensHeader;
+		List<SettingsCard> _screenCards = new List<SettingsCard>();
+		Timer _numLockTimer;
+
 		/// <summary>
-		/// Initialises a new instance of the <see cref="SwapScreenUdaOptionsPanel" /> class.
+		/// Initialises a new instance of the <see cref="SwapScreenSdaOptionsPanel" /> class.
 		/// </summary>
 		/// <param name="swapScreenModule">Swap screen module</param>
 		public SwapScreenSdaOptionsPanel(SwapScreenModule swapScreenModule)
 		{
 			_swapScreenModule = swapScreenModule;
-
-			InitializeComponent();
-
-			// TODO: want this monitored either by application.Idle, timer or hook
-			// or use a HotKey ?
-			if (!Control.IsKeyLocked(Keys.NumLock))
-			{
-				labelNumLock.ForeColor = Color.Red;
-			}
-
-			//checkBoxEnable.Checked = _swapScreenModule.EnableSdas;
-		}
-
-		public void ShowErrors()
-		{
-			listBoxRegistrationErrors.BeginUpdate();
-			listBoxRegistrationErrors.Items.Clear();
-			foreach (string error in _swapScreenModule.SdaHotKeyErrors)
-			{
-				listBoxRegistrationErrors.Items.Add(error);
-			}
-			listBoxRegistrationErrors.EndUpdate();
-		}
-
-		private void SwapScreenSdaOptionsPanel_Load(object sender, EventArgs e)
-		{
 			_loading = true;
-			checkBoxEnable.Checked = _swapScreenModule.EnableSdas;
-			checkBoxBorderOutside.Checked = _swapScreenModule.BorderOutsideSda;
-			FillModifiersList();
+
+			EnsureModifierList();
+
+			AddText("Hold a modifier key and press a number on the numeric keypad to move the active window " +
+				"to a full, half or quarter of a screen. Each screen has its own modifier, so the same keys work on every screen.");
+
+			_numLockBar = Add(new InfoBar(Severity.Warning, "Num Lock is off", "Numpad zones only work while Num Lock is on."), 16);
+			_numLockBar.Visible = false;
+
+			_enableSwitch = new ToggleSwitch { Checked = _swapScreenModule.EnableSdas };
+			_enableSwitch.CheckedChanged += EnableSwitch_CheckedChanged;
+			Add(new SettingsCard("Numpad zones", "Move windows with a modifier + numeric keypad", Theme.GlyphTiles, _enableSwitch), 16);
+
+			_borderSwitch = new ToggleSwitch { Checked = _swapScreenModule.BorderOutsideSda };
+			_borderSwitch.CheckedChanged += BorderSwitch_CheckedChanged;
+			AddCard("Line windows up edge to edge",
+				"Windows has invisible borders around most windows. Push them outside the zone so neighbouring windows don't leave gaps.",
+				Theme.GlyphFrame, _borderSwitch);
+
+			_errorBar = Add(new InfoBar(Severity.Error, "Some shortcuts are already in use", string.Empty), 8);
+			_errorBar.Visible = false;
+
+			AddHeader("Preview");
+			_numpad = new NumpadView();
+			_numpad.HotKeyChanged += Numpad_HotKeyChanged;
+			_monitorMap = new MonitorMap();
+			_zoneCaption = new TextBlock(string.Empty, TextRole.Body, TextTone.Secondary);
+			SettingsCard previewCard = AddCard("Hover over a key to see where it puts the window", null, null, null);
+			previewCard.Content = new PreviewLayout(_numpad, _monitorMap, _zoneCaption);
+
+			_screensHeader = AddHeader("Modifier for each screen");
+			BuildScreenCards();
+
 			ShowErrors();
-			UpdateButtonStates();
+			ShowZoneCaption();
+			UpdateEnabledState();
+
+			_numLockTimer = new Timer { Interval = 500 };
+			_numLockTimer.Tick += (s, e) => UpdateNumLock();
 			_loading = false;
 		}
 
-		private void checkBoxEnable_CheckedChanged(object sender, EventArgs e)
+		/// <summary>
+		/// Shows any hot keys that couldn't be registered (called by the module after regenerating the SDAs)
+		/// </summary>
+		public void ShowErrors()
 		{
-			// prevent processing if we are just loading the form
+			if (IsDisposed)
+			{
+				return;
+			}
+
+			List<string> errors = _swapScreenModule.SdaHotKeyErrors;
+			_errorBar.Visible = errors.Count > 0;
+			_errorBar.Text = "Another program has already taken these, so they won't work: " + string.Join(", ", errors) + ".";
+
+			// the monitors may have changed too
+			if (_screenCards.Count != Monitor.AllMonitors.Count)
+			{
+				BuildScreenCards();
+			}
+
+			_monitorMap.Refresh();
+			UpdateMapLabels();
+		}
+
+		protected override void OnVisibleChanged(EventArgs e)
+		{
+			base.OnVisibleChanged(e);
+			if (_numLockTimer != null)
+			{
+				_numLockTimer.Enabled = Visible;
+				UpdateNumLock();
+			}
+		}
+
+		protected override void OnHandleDestroyed(EventArgs e)
+		{
+			if (_numLockTimer != null)
+			{
+				_numLockTimer.Stop();
+			}
+
+			base.OnHandleDestroyed(e);
+		}
+
+		void EnsureModifierList()
+		{
+			uint[] saved = _swapScreenModule.SdaModifiers;
+			if (saved.Length < DefaultSdaModifiers.Length)
+			{
+				// keep the user's order, then add any modifiers they don't have yet
+				List<uint> modifiers = saved.Where(m => DefaultSdaModifiers.Contains(m)).Distinct().ToList();
+				modifiers.AddRange(DefaultSdaModifiers.Where(m => !modifiers.Contains(m)));
+				_swapScreenModule.SdaModifiers = modifiers.ToArray();
+			}
+		}
+
+		void BuildScreenCards()
+		{
+			SuspendLayout();
+			foreach (SettingsCard card in _screenCards)
+			{
+				Controls.Remove(card);
+				card.Dispose();
+			}
+
+			_screenCards.Clear();
+
+			Monitors monitors = Monitor.AllMonitors;
+			string[] names = MonitorDescriptions.GetNames();
+			uint[] modifiers = _swapScreenModule.SdaModifiers;
+
+			for (int i = 0; i < monitors.Count; i++)
+			{
+				int screenIndex = i;
+				ComboBox combo = new ComboBox
+				{
+					DropDownStyle = ComboBoxStyle.DropDownList,
+					FlatStyle = FlatStyle.Flat,
+				}.WithLogicalWidth(190);
+				foreach (uint modifier in DefaultSdaModifiers)
+				{
+					combo.Items.Add(new ModifierItem(modifier));
+				}
+
+				if (i < modifiers.Length)
+				{
+					combo.SelectedIndex = Array.IndexOf(DefaultSdaModifiers, modifiers[i]);
+				}
+
+				combo.SelectedIndexChanged += (s, e) => ModifierChanged(screenIndex, combo);
+				combo.AccessibleName = string.Format("Modifier for screen {0}", i + 1);
+
+				Rectangle bounds = monitors[i].Bounds;
+				string description = string.Format("{0} × {1}{2}", bounds.Width, bounds.Height, monitors[i].Primary ? " · main display" : string.Empty);
+				string title = string.IsNullOrEmpty(names[i]) ? string.Format("Screen {0}", i + 1) : string.Format("Screen {0} · {1}", i + 1, names[i]);
+				SettingsCard card = new SettingsCard(title, description, Theme.GlyphMonitor, combo);
+				Add(card, _screenCards.Count == 0 ? 8 : 4);
+				_screenCards.Add(card);
+			}
+
+			ResumeLayout();
+			UpdateMapLabels();
+		}
+
+		void ModifierChanged(int screenIndex, ComboBox combo)
+		{
+			if (_loading)
+			{
+				return;
+			}
+
+			ModifierItem item = combo.SelectedItem as ModifierItem;
+			if (item == null)
+			{
+				return;
+			}
+
+			// a modifier can only be used by one screen, so swap with whoever had it
+			List<uint> modifiers = _swapScreenModule.SdaModifiers.ToList();
+			int previousOwner = modifiers.IndexOf(item.Modifier);
+			if (previousOwner == screenIndex)
+			{
+				return;
+			}
+
+			uint oldModifier = modifiers[screenIndex];
+			modifiers[screenIndex] = item.Modifier;
+			if (previousOwner >= 0)
+			{
+				modifiers[previousOwner] = oldModifier;
+			}
+
+			_swapScreenModule.SdaModifiers = modifiers.ToArray();
+
+			// reflect the swap in the other screen's drop down
+			_loading = true;
+			if (previousOwner >= 0 && previousOwner < _screenCards.Count)
+			{
+				ComboBox other = _screenCards[previousOwner].Action as ComboBox;
+				if (other != null)
+				{
+					other.SelectedIndex = Array.IndexOf(DefaultSdaModifiers, oldModifier);
+				}
+			}
+
+			_loading = false;
+
+			UpdateMapLabels();
+			_swapScreenModule.GenerateSDAs();
+		}
+
+		void EnableSwitch_CheckedChanged(object sender, EventArgs e)
+		{
 			if (!_loading)
 			{
-				_swapScreenModule.EnableSdas = checkBoxEnable.Checked;
-				RegenerateSDAs();
+				_swapScreenModule.EnableSdas = _enableSwitch.Checked;
+				_swapScreenModule.GenerateSDAs();
+			}
+
+			UpdateEnabledState();
+		}
+
+		void BorderSwitch_CheckedChanged(object sender, EventArgs e)
+		{
+			if (!_loading)
+			{
+				_swapScreenModule.BorderOutsideSda = _borderSwitch.Checked;
 			}
 		}
 
-		private void checkBoxBorderOutside_CheckedChanged(object sender, EventArgs e)
+		void UpdateEnabledState()
 		{
-			_swapScreenModule.BorderOutsideSda = checkBoxBorderOutside.Checked;
-		}
-
-		void FillModifiersList()
-		{
-			uint[] savedSdaModifiers = _swapScreenModule.SdaModifiers;
-			if (savedSdaModifiers.Length < defaultSdaModifiers.Length)
+			bool enabled = _enableSwitch.Checked;
+			foreach (SettingsCard card in _screenCards)
 			{
-				// extend the savedList with missing values from the default list
-				// TODO: being lazy for now and just replacing it
-				savedSdaModifiers = defaultSdaModifiers;
-				_swapScreenModule.SdaModifiers = savedSdaModifiers;
-			}
-			
-			// populate the listbox
-			listBoxModifiers.BeginUpdate();
-			listBoxModifiers.Items.Clear();
-			foreach (uint modifier in savedSdaModifiers)
-			{
-				ModifierItem item = new ModifierItem(modifier);
-				listBoxModifiers.Items.Add(item);
-			}
-			listBoxModifiers.EndUpdate();
-		}
-
-		void RegenerateSDAs()
-		{
-			//listBoxRegistrationErrors.Items.Clear();
-			_swapScreenModule.GenerateSDAs();
-			//ShowErrors(); - this will be called automatically by above
-		}
-
-		private void listBoxModifiers_MouseDown(object sender, MouseEventArgs e)
-		{
-			object selectedItem = listBoxModifiers.SelectedItem;
-			if (selectedItem != null)
-			{
-				listBoxModifiers.DoDragDrop(selectedItem, DragDropEffects.Move);
+				card.Enabled = enabled;
 			}
 
-			// SelectedIndexChanged doesn't seem to fire in this case
-			// so we force a check for changed selected \vsindex
-			UpdateButtonStates();
+			UpdateNumLock();
 		}
 
-		private void listBoxModifiers_DragOver(object sender, DragEventArgs e)
+		void UpdateNumLock()
 		{
-			e.Effect = DragDropEffects.Move;
-		}
-
-		private void listBoxModifiers_DragDrop(object sender, DragEventArgs e)
-		{
-			Point point = listBoxModifiers.PointToClient(new Point(e.X, e.Y));
-			int index = listBoxModifiers.IndexFromPoint(point);
-			if (index < 0)
+			bool show = _enableSwitch.Checked && !Control.IsKeyLocked(Keys.NumLock);
+			if (_numLockBar.Visible != show)
 			{
-				index = listBoxModifiers.Items.Count - 1;
-			}
-			object data = e.Data.GetData(typeof(ModifierItem));
-			listBoxModifiers.Items.Remove(data);
-			listBoxModifiers.Items.Insert(index, data);
-
-			// select dropped item
-			listBoxModifiers.SelectedIndex = index;
-			UpdateButtonStates();
-
-			UseNewModifierOrder();
-		}
-
-		private void listBoxModifiers_DrawItem(object sender, DrawItemEventArgs e)
-		{
-			e.DrawBackground();
-
-			Brush myBrush = Brushes.Black;
-
-			string text = "Screen " + (e.Index + 1);
-			text += " -> " + listBoxModifiers.Items[e.Index].ToString();
-
-			e.Graphics.DrawString(text, e.Font, myBrush, e.Bounds, StringFormat.GenericDefault);
-			e.DrawFocusRectangle();
-		}
-
-		private void buttonUp_Click(object sender, EventArgs e)
-		{
-			int selectedIndex = listBoxModifiers.SelectedIndex;
-			if (selectedIndex > 0)
-			{
-				// can move item up
-				object current = listBoxModifiers.Items[selectedIndex];
-				object previous = listBoxModifiers.Items[selectedIndex - 1];
-				// now swap
-				listBoxModifiers.Items[selectedIndex - 1] = current;
-				listBoxModifiers.Items[selectedIndex] = previous;
-				// and make sure moved item is selected
-				listBoxModifiers.SelectedIndex = selectedIndex - 1;
-
-				UseNewModifierOrder();
+				_numLockBar.Visible = show;
 			}
 		}
 
-		private void buttonDown_Click(object sender, EventArgs e)
+		void Numpad_HotKeyChanged(object sender, EventArgs e)
 		{
-			int selectedIndex = listBoxModifiers.SelectedIndex;
-			if (selectedIndex >= 0 && selectedIndex < listBoxModifiers.Items.Count - 1)
+			int key = _numpad.HotKey;
+			if (key < 0)
 			{
-				// can move item down
-				object current = listBoxModifiers.Items[selectedIndex];
-				object next = listBoxModifiers.Items[selectedIndex + 1];
-				// now swap
-				listBoxModifiers.Items[selectedIndex + 1] = current;
-				listBoxModifiers.Items[selectedIndex] = next;
-				// and make sure moved item is selected
-				listBoxModifiers.SelectedIndex = selectedIndex + 1;
-
-				UseNewModifierOrder();
+				_monitorMap.SetZone(null);
 			}
-		}
-
-		private void listBoxModifiers_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			UpdateButtonStates();
-		}
-
-		void UpdateButtonStates()
-		{
-			bool enableMoveUp = false;
-			bool enableMoveDown = false;
-
-			int selectedIndex = listBoxModifiers.SelectedIndex;
-
-			if (selectedIndex >= 0)
+			else
 			{
-				if (selectedIndex > 0)
+				_monitorMap.SetZone(rect => NumpadView.ZoneFor(key, rect), key == 0);
+			}
+
+			UpdateMapLabels();
+			ShowZoneCaption();
+		}
+
+		void ShowZoneCaption()
+		{
+			int key = _numpad.HotKey;
+			if (key < 0)
+			{
+				_zoneCaption.Text = "Each screen's modifier is shown in its corner. Num 0 with the first screen's modifier stretches the window across every screen.";
+				return;
+			}
+
+			uint[] modifiers = _swapScreenModule.SdaModifiers;
+			string keys;
+			if (key == 0)
+			{
+				keys = modifiers.Length > 0 ? ModifierName(modifiers[0]) + " + Num 0" : "Num 0";
+			}
+			else
+			{
+				keys = string.Format("Modifier + Num {0}", key);
+			}
+
+			_zoneCaption.Text = string.Format("{0}  —  {1}", NumpadView.ZoneName(key), keys);
+		}
+
+		void UpdateMapLabels()
+		{
+			uint[] modifiers = _swapScreenModule.SdaModifiers;
+			int key = _numpad == null ? -1 : _numpad.HotKey;
+			string[] labels = new string[Monitor.AllMonitors.Count];
+			for (int i = 0; i < labels.Length && i < modifiers.Length; i++)
+			{
+				if (key == 0)
 				{
-					enableMoveUp = true;
+					// stretching across all screens only uses the first screen's modifier
+					labels[i] = i == 0 ? ModifierName(modifiers[0]) + " + Num 0" : null;
 				}
-
-				if (selectedIndex < listBoxModifiers.Items.Count - 1)
+				else
 				{
-					enableMoveDown = true;
+					labels[i] = ModifierName(modifiers[i]) + (key > 0 ? " + Num " + key : string.Empty);
 				}
 			}
 
-			buttonUp.Enabled = enableMoveUp;
-			buttonDown.Enabled = enableMoveDown;
+			_monitorMap.Labels = labels;
 		}
 
-		void UseNewModifierOrder()
+		static string ModifierName(uint modifier)
 		{
-			// get the current order
-			List<uint> newOrder = new List<uint>();
-			for (int index = 0; index < listBoxModifiers.Items.Count; index++)
+			return string.Join(" + ", UiHelper.KeyParts(new KeyCombo(modifier), false));
+		}
+
+		class ModifierItem
+		{
+			public ModifierItem(uint modifier)
 			{
-				ModifierItem modifierItem = listBoxModifiers.Items[index] as ModifierItem;
-				if (modifierItem != null)
-				{
-					newOrder.Add(modifierItem.Modifier);
-				}
+				Modifier = modifier;
 			}
 
-			// save the new order
-			_swapScreenModule.SdaModifiers = newOrder.ToArray();
+			public uint Modifier { get; private set; }
 
-			// and force regeneration of SDAs
-			RegenerateSDAs();
+			public override string ToString()
+			{
+				return ModifierName(Modifier);
+			}
+		}
+
+		/// <summary>
+		/// Numpad on the left, monitors on the right (stacked when narrow), with a caption underneath
+		/// </summary>
+		class PreviewLayout : Panel, IHeightForWidth
+		{
+			NumpadView _numpad;
+			MonitorMap _map;
+			TextBlock _caption;
+
+			public PreviewLayout(NumpadView numpad, MonitorMap map, TextBlock caption)
+			{
+				_numpad = numpad;
+				_map = map;
+				_caption = caption;
+				Controls.Add(numpad);
+				Controls.Add(map);
+				Controls.Add(caption);
+			}
+
+			public int GetHeightForWidth(int width)
+			{
+				return Arrange(width, false);
+			}
+
+			protected override void OnLayout(LayoutEventArgs levent)
+			{
+				Arrange(Width, true);
+			}
+
+			int Arrange(int width, bool apply)
+			{
+				Size pad = _numpad.GetPreferredSize(Size.Empty);
+				int gap = LogicalToDeviceUnits(24);
+				bool stacked = width - pad.Width - gap < LogicalToDeviceUnits(240);
+				int y;
+
+				if (stacked)
+				{
+					int mapHeight = _map.GetHeightForWidth(width);
+					if (apply)
+					{
+						_numpad.SetBounds(0, 0, pad.Width, pad.Height);
+						_map.SetBounds(0, pad.Height + gap, width, mapHeight);
+					}
+
+					y = pad.Height + gap + mapHeight;
+				}
+				else
+				{
+					int mapWidth = width - pad.Width - gap;
+					int mapHeight = Math.Max(_map.GetHeightForWidth(mapWidth), pad.Height);
+					if (apply)
+					{
+						_numpad.SetBounds(0, (mapHeight - pad.Height) / 2, pad.Width, pad.Height);
+						_map.SetBounds(pad.Width + gap, 0, mapWidth, mapHeight);
+					}
+
+					y = mapHeight;
+				}
+
+				y += LogicalToDeviceUnits(12);
+				int captionHeight = _caption.GetHeightForWidth(width);
+				if (apply)
+				{
+					_caption.SetBounds(0, y, width, captionHeight);
+				}
+
+				return y + captionHeight;
+			}
 		}
 	}
 }

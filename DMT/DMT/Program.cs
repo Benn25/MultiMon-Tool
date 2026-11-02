@@ -61,6 +61,13 @@ namespace DMT
 			// DPI awareness to see the real screen co-ordinates.
 			ApplicationConfiguration.Initialize();
 
+			// use the modern Windows font and follow the Windows light/dark setting
+			// (the font must be set before anything creates a window)
+			Application.SetDefaultFont(DMT.Library.Ui.Theme.DefaultFont);
+			bool? forcedDark = DMT.Library.Ui.Theme.ForcedDark;
+			Application.SetColorMode(forcedDark.HasValue ? (forcedDark.Value ? SystemColorMode.Dark : SystemColorMode.Classic) : SystemColorMode.System);
+			DMT.Library.Ui.ThemeManager.Install();
+
 			ProgramOptions programOptions = new ProgramOptions(args);
 
 			if (programOptions.CmdMode)

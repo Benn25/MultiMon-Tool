@@ -1,18 +1,18 @@
 ﻿#region copyright
 // This file is part of Dual Monitor Tools which is a set of tools to assist
 // users with multiple monitor setups.
-// Copyright (C) 2015-2026  Gerald Evans
-// 
+// Copyright (C) 2015  Gerald Evans
+//
 // Dual Monitor Tools is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
@@ -21,428 +21,192 @@ namespace DMT.Modules.General
 {
 	using System;
 	using System.Collections.Generic;
-	using System.ComponentModel;
-	using System.Data;
-	using System.Drawing;
 	using System.Linq;
 	using System.Text;
-	using System.Threading.Tasks;
 	using System.Windows.Forms;
 
-	using DMT.Library.Settings;
-	using DMT.Library.Utils;
-	using DMT.Library.Environment;
 	using DMT.Library.DisplayHandling;
+	using DMT.Library.Environment;
+	using DMT.Library.Ui;
 
 	/// <summary>
-	/// Options panel for the general options for DMT
+	/// Shows the monitors and lets the user change the main display, names, orientation, brightness and contrast
 	/// </summary>
-	partial class GeneralMonitorsOptionsPanel : UserControl
+	class GeneralMonitorsOptionsPanel : SettingsPage
 	{
 		GeneralModule _generalModule;
+		DisplayDevices _displayDevices;
+		int _selectedDevice = -1;
 
-		const int RowIdxIsActive = 0;
-		const int RowIdxIsPrimary = 1;
-		const int RowIdxName = 2;
-		const int RowIdxSourceName = 3;
-		const int RowIdxTargetName = 4;
-		const int RowIdxDescription = 5;
-		const int RowIdxGpu = 6;
-		const int RowIdxSize = 7;
-		const int RowIdxArea = 8;
-		const int RowIdxWorkingArea = 9;
-		const int RowIdxBpp = 10;
-		const int RowIdxOutputTech = 11;
-		const int RowIdxRotation = 12;
-		const int RowIdxBrightness = 13;
-		const int RowIdxContrast = 14;
-		const int NumRows = 15;
-
-		static Color EditableCellColour = Color.LightYellow;
-
-		DataGridViewCellStyle _defaultCellStyle;
-		DataGridViewCellStyle _editableCellStyle;
+		MonitorMap _map;
+		SettingsCard _monitorCard;
+		FluentButton _makePrimary;
+		FluentButton _rename;
+		FluentButton _rotate;
+		SettingsCard _brightnessCard;
+		SettingsCard _contrastCard;
+		SettingsCard _detailsCard;
+		TextBlock _details;
+		InfoBar _errorBar;
+		TextBlock _inactiveHeader;
+		TextBlock _inactive;
 
 		/// <summary>
-		/// Initialises a new instance of the <see cref="GeneralOptionsPanel" /> class.
+		/// Initialises a new instance of the <see cref="GeneralMonitorsOptionsPanel" /> class.
 		/// </summary>
 		/// <param name="generalModule">The general module</param>
+		/// <param name="displayDevices">The current display devices (to save getting them again)</param>
 		public GeneralMonitorsOptionsPanel(GeneralModule generalModule, DisplayDevices displayDevices)
 		{
 			_generalModule = generalModule;
 
-			InitializeComponent();
+			AddText("Choose a monitor to see its details and change its settings.");
 
-			// set the default cell style (for non-editable cells)
-			_editableCellStyle = new DataGridViewCellStyle();
+			_map = Add(new MonitorMap { Clickable = true }, 16);
+			_map.MonitorClicked += Map_MonitorClicked;
 
-			// set default cell style for the editable cells
-			_editableCellStyle = new DataGridViewCellStyle();
-			_editableCellStyle.BackColor = EditableCellColour;
+			_errorBar = Add(new InfoBar(Severity.Error, "Couldn't read the monitors", string.Empty), 12);
+			_errorBar.Visible = false;
 
-			InitGrid(displayDevices);
+			_makePrimary = new FluentButton("Make main display", Theme.GlyphHome);
+			_makePrimary.Click += (s, e) => _generalModule.MakePrimary(_selectedDevice);
+			_rename = new FluentButton("Rename", Theme.GlyphRename);
+			_rename.Click += (s, e) => _generalModule.ShowEditNameDlg(_selectedDevice, FindForm());
+			_rotate = new FluentButton("Rotate", "");
+			_rotate.Click += (s, e) => { if (_generalModule.ShowOrientationDlg(_selectedDevice, FindForm())) { ShowCurrentInfo(); } };
+			_monitorCard = Add(new SettingsCard(string.Empty, string.Empty, Theme.GlyphMonitor, new HStack(_makePrimary, _rename, _rotate)), 16);
 
-			//if (!generalModule.AllowShowVirtualMonitors)
-			//{
-			//	// hide the "Show virtual monitors" checkbox
-			//	checkBoxShowAllMonitors.Visible = false;
-			//}
-		}
+			FluentButton brightness = new FluentButton("Change");
+			brightness.Click += (s, e) => { if (_generalModule.ShowBrightnessDlg(_selectedDevice, FindForm())) { ShowCurrentInfo(); } };
+			_brightnessCard = AddCard("Brightness", string.Empty, "", brightness);
 
-		void InitGrid(DisplayDevices displayDevices)
-		{
-			dataGridView.ColumnCount = 0;
-			dataGridView.RowCount = NumRows;
+			FluentButton contrast = new FluentButton("Change");
+			contrast.Click += (s, e) => { if (_generalModule.ShowContrastDlg(_selectedDevice, FindForm())) { ShowCurrentInfo(); } };
+			_contrastCard = AddCard("Contrast", string.Empty, "", contrast);
 
-			dataGridView.Rows[RowIdxIsActive].HeaderCell.Value = "Is Active";
-			dataGridView.Rows[RowIdxIsPrimary].HeaderCell.Value = "Is Primary";
+			_details = new TextBlock(string.Empty, TextRole.Body, TextTone.Secondary);
+			_detailsCard = AddCard("Details", null, Theme.GlyphInfo);
+			_detailsCard.Content = _details;
 
-			//dataGridView.Rows[n++].HeaderCell.Value = "Adapter name";
-			dataGridView.Rows[RowIdxName].HeaderCell.Value = "Name";
-			dataGridView.Rows[RowIdxSourceName].HeaderCell.Value = "Source name";
-			dataGridView.Rows[RowIdxTargetName].HeaderCell.Value = "Brand/name";
-			//dataGridView.Rows[n++].HeaderCell.Value = "Device name";
-			dataGridView.Rows[RowIdxDescription].HeaderCell.Value = "Description";
-			dataGridView.Rows[RowIdxGpu].HeaderCell.Value = "GPU";
-
-			dataGridView.Rows[RowIdxSize].HeaderCell.Value = "Size";
-			dataGridView.Rows[RowIdxArea].HeaderCell.Value = "Area";
-			dataGridView.Rows[RowIdxWorkingArea].HeaderCell.Value = "Working Area";
-			dataGridView.Rows[RowIdxBpp].HeaderCell.Value = "Bits per Pixel";
-
-			dataGridView.Rows[RowIdxOutputTech].HeaderCell.Value = "Output Tech";
-			dataGridView.Rows[RowIdxRotation].HeaderCell.Value = "Orientation";
-			dataGridView.Rows[RowIdxBrightness].HeaderCell.Value = "Brightness";
-			dataGridView.Rows[RowIdxContrast].HeaderCell.Value = "Contrast";
+			_inactiveHeader = AddHeader("Connected but not in use");
+			_inactive = AddText(string.Empty);
 
 			ShowCurrentInfo(displayDevices);
 		}
 
+		/// <summary>
+		/// Refreshes the information shown (also called by the module when the monitors change)
+		/// </summary>
+		/// <param name="displayDevices">Current display devices, or null to get them</param>
 		public void ShowCurrentInfo(DisplayDevices displayDevices = null)
 		{
-			labelErrorMsg.Text = string.Empty;
+			if (IsDisposed)
+			{
+				return;
+			}
+
 			try
 			{
-				//IList<DisplayDevice> allMonitorProperties = _generalModule.GetAllMonitorProperties();
-				//DisplayDevices displayDevices = _generalModule.GetDisplayDevices();
-				if (displayDevices == null)
-				{
-					// we weren't passed in a cached copy of the display devices
-					// so get the current setup
-					displayDevices = _generalModule.GetDisplayDevices();
-				}
-				IList<DisplayDevice> allMonitorProperties = displayDevices.Items;
+				_errorBar.Visible = false;
+				_displayDevices = displayDevices ?? _generalModule.GetDisplayDevices();
+				_map.Refresh();
 
-				if (checkBoxShowAllMonitors.Checked)
+				IList<DisplayDevice> devices = _displayDevices.Items;
+				if (_selectedDevice < 0 || _selectedDevice >= devices.Count || !devices[_selectedDevice].IsActive)
 				{
-					dataGridView.ColumnCount = displayDevices.Count();
-				}
-				else
-				{
-					dataGridView.ColumnCount = displayDevices.ActiveCount();
+					// start with the main display
+					_selectedDevice = Math.Max(0, IndexOf(devices, d => d.IsActive && d.IsPrimary));
 				}
 
-				DataGridViewCellStyle editableStyle = new DataGridViewCellStyle();
-				editableStyle.BackColor = EditableCellColour;
+				ShowSelected();
 
-				for (int col = 0; col < allMonitorProperties.Count; col++)
-				{
-					DisplayDevice monitorProperties = allMonitorProperties[col];
-
-					if (monitorProperties.IsActive || checkBoxShowAllMonitors.Checked)
-					{
-
-						dataGridView.Columns[col].Width = 140; // 128;
-						dataGridView.Columns[col].SortMode = DataGridViewColumnSortMode.NotSortable;
-
-						string colHdr = (col + 1).ToString();
-
-						dataGridView.Columns[col].HeaderCell.Value = colHdr;
-
-						dataGridView.Rows[RowIdxIsActive].Cells[col].Value = YesNoText(monitorProperties.IsActive);
-						dataGridView.Rows[RowIdxIsPrimary].Cells[col].Value = HideNonActive(monitorProperties, YesNoText(monitorProperties.IsPrimary));
-
-						dataGridView.Rows[RowIdxName].Cells[col].Value = monitorProperties.GetMonitorName();
-
-						//dataGridView.Rows[n++].Cells[col].Value = monitorProperties.AdapterName;
-						dataGridView.Rows[RowIdxSourceName].Cells[col].Value = monitorProperties.SourceName;
-						dataGridView.Rows[RowIdxTargetName].Cells[col].Value = monitorProperties.FriendlyName;
-						//dataGridView.Rows[n++].Cells[col].Value = monitorProperties.DeviceName;
-						dataGridView.Rows[RowIdxDescription].Cells[col].Value = monitorProperties.Description;
-						dataGridView.Rows[RowIdxGpu].Cells[col].Value = monitorProperties.GPU;
-
-						string size = string.Format("{0} * {1}", monitorProperties.Bounds.Width, monitorProperties.Bounds.Height);
-						dataGridView.Rows[RowIdxSize].Cells[col].Value = HideNonActive(monitorProperties, size);
-
-						string bounds = string.Format("({0}, {1}) - ({2}, {3})",
-							monitorProperties.Bounds.Left, monitorProperties.Bounds.Top,
-							monitorProperties.Bounds.Right - 1, monitorProperties.Bounds.Bottom - 1);
-						dataGridView.Rows[RowIdxArea].Cells[col].Value = HideNonActive(monitorProperties, bounds);
-						string workingArea = string.Format("({0}, {1}) - ({2}, {3})",
-							monitorProperties.WorkingArea.Left, monitorProperties.WorkingArea.Top,
-							monitorProperties.WorkingArea.Right - 1, monitorProperties.WorkingArea.Bottom - 1);
-						dataGridView.Rows[RowIdxWorkingArea].Cells[col].Value = HideNonActive(monitorProperties, workingArea);
-
-						//dataGridView.Rows[n++].Cells[col].Value = HideNonActive(monitorProperties, monitorProperties.BitsPerPixel == 0 ? "Unknown" : monitorProperties.BitsPerPixel.ToString());
-						dataGridView.Rows[RowIdxBpp].Cells[col].Value = HideNonActive(monitorProperties, monitorProperties.BitsPerPixel.ToString());
-
-
-						dataGridView.Rows[RowIdxOutputTech].Cells[col].Value = HideNonActive(monitorProperties, monitorProperties.OutputTechnology);
-						dataGridView.Rows[RowIdxRotation].Cells[col].Value = HideNonActive(monitorProperties, monitorProperties.RotationDegrees.ToString());
-						//dataGridView.Rows[RowIdxBrightness].Cells[col].Value = HideNonActive(monitorProperties, monitorProperties.Brightness.GetCurDisplayableValue());
-						NumericRange brightness = monitorProperties.GetBrightness();
-						dataGridView.Rows[RowIdxBrightness].Cells[col].Value = HideNonActive(monitorProperties, brightness.GetCurDisplayableValue());
-						//dataGridView.Rows[RowIdxContrast].Cells[col].Value = HideNonActive(monitorProperties, monitorProperties.Contrast.GetCurDisplayableValue());
-						NumericRange contrast = monitorProperties.GetContrast();
-						dataGridView.Rows[RowIdxContrast].Cells[col].Value = HideNonActive(monitorProperties, contrast.GetCurDisplayableValue());
-
-						// Indicate which cells are currently editable
-
-						MakeCellEditable(dataGridView.Rows[RowIdxName].Cells[col], this.contextMenuStripEditName,
-							!string.IsNullOrEmpty(monitorProperties.GetMonitorId()));
-
-						MakeCellEditable(dataGridView.Rows[RowIdxIsPrimary].Cells[col], this.contextMenuStripChangePrimary,
-							monitorProperties.IsActive && !monitorProperties.IsPrimary);
-
-						MakeCellEditable(dataGridView.Rows[RowIdxBrightness].Cells[col], this.contextMenuStripChangeBrightness,
-							//monitorProperties.IsActive && monitorProperties.Brightness.Editable);
-							monitorProperties.IsActive && brightness.Editable);
-
-						MakeCellEditable(dataGridView.Rows[RowIdxContrast].Cells[col], this.contextMenuStripChangeContrast,
-							//monitorProperties.IsActive && monitorProperties.Contrast.Editable);
-							monitorProperties.IsActive && contrast.Editable);
-
-						MakeCellEditable(dataGridView.Rows[RowIdxRotation].Cells[col], this.contextMenuStripChangeOrientation,
-							monitorProperties.IsActive);
-					}
-				}
+				List<string> inactive = devices.Where(d => !d.IsActive).Select(d => string.IsNullOrEmpty(d.FriendlyName) ? d.SourceName : d.FriendlyName).ToList();
+				_inactiveHeader.Visible = inactive.Count > 0;
+				_inactive.Visible = inactive.Count > 0;
+				_inactive.Text = string.Join(Environment.NewLine, inactive);
 			}
 			catch (Exception ex)
 			{
-				// Shouldn't get here. but jic
-				labelErrorMsg.Text = ex.Message;
+				// Shouldn't get here, but just in case
+				_errorBar.Text = ex.Message;
+				_errorBar.Visible = true;
 			}
 		}
 
-		void MakeCellEditable(DataGridViewCell cell, ContextMenuStrip contextMenu, bool editable)
+		static int IndexOf(IList<DisplayDevice> devices, Func<DisplayDevice, bool> predicate)
 		{
-			if (editable)
+			for (int i = 0; i < devices.Count; i++)
 			{
-				cell.Style = _editableCellStyle;
-				cell.ContextMenuStrip = contextMenu;
-			}
-			else
-			{
-				cell.Style = _defaultCellStyle;
-				cell.ContextMenuStrip = null;
-			}
-		}
-
-		string YesNoText(bool flag)
-		{
-			return flag ? "Yes" : "No";
-		}
-
-		string HideNonActive(DisplayDevice monitorProperties, string s)
-		{
-			if (monitorProperties.IsActive)
-			{
-				return s;
-			}
-
-			return string.Empty;
-		}
-
-		private void checkBoxShowAll_CheckedChanged(object sender, EventArgs e)
-		{
-			ShowCurrentInfo();
-		}
-
-		private void dataGridView_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-		{
-			int col = e.ColumnIndex;
-			int row = e.RowIndex;
-
-			switch (row)
-			{
-				case RowIdxIsPrimary:
-					_generalModule.MakePrimary(col);
-					break;
-
-				case RowIdxName:
-					ShowEditNameDlg(col);
-					break;
-
-				case RowIdxBrightness:
-					ShowBrightnessDlg(col);
-					break;
-
-				case RowIdxContrast:
-					ShowContrastDlg(col);
-					break;
-
-				case RowIdxRotation:
-					ShowOrientationDlg(col);
-					break;
-			}
-		}
-
-		void ShowEditNameDlg(int col)
-		{
-			if (_generalModule.ShowEditNameDlg(col, this))
-			{
-				// and changes should have already been notified to dependant panels
-			}
-		}
-
-		void ShowBrightnessDlg(int col)
-		{
-			if (_generalModule.ShowBrightnessDlg(col, this))
-			{
-				// refresh grid in case brightness value has been changed
-				// as we currently don't get notifications when this changes
-				ShowCurrentInfo();
-			}
-		}
-
-		void ShowContrastDlg(int col)
-		{
-			if (_generalModule.ShowContrastDlg(col, this))
-			{
-				// refresh grid in case contrast value has been changed
-				// as we currently don't get notifications when this changes
-				ShowCurrentInfo();
-			}
-		}
-
-		void ShowOrientationDlg(int col)
-		{
-			if (_generalModule.ShowOrientationDlg(col, this))
-			{
-				// refresh grid in case contrast value has been changed
-				// as we currently don't get notifications when this changes
-				ShowCurrentInfo();
-			}
-		}
-
-		private void dataGridView_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
-		{
-			// make sure cell gets selected when right clicked
-			// (we need this so that the context menu can determine cell it applies too)
-			if (IsLegalCell(e.ColumnIndex, e.RowIndex))
-			{
-				if (e.Button == System.Windows.Forms.MouseButtons.Right)
+				if (predicate(devices[i]))
 				{
-					DataGridViewCell cell = (sender as DataGridView)[e.ColumnIndex, e.RowIndex];
-					dataGridView.ClearSelection();
-					dataGridView.CurrentCell = cell;
-					cell.Selected = true;
+					return i;
 				}
-			}
-		}
-
-		private void dataGridView_CellMouseEnter(object sender, DataGridViewCellEventArgs e)
-		{
-			if (IsEditableCell(e.ColumnIndex, e.RowIndex))
-			{
-				dataGridView.Cursor = Cursors.Hand;
-			}
-		}
-
-		private void dataGridView_CellMouseLeave(object sender, DataGridViewCellEventArgs e)
-		{
-			if (IsEditableCell(e.ColumnIndex, e.RowIndex))
-			{
-				dataGridView.Cursor = Cursors.Default;
-			}
-		}
-
-		//bool IsEditableCell(DataGridViewCellEventArgs e)
-
-		bool IsEditableCell(int columnIndex, int rowIndex)
-		{
-			if (IsLegalCell(columnIndex, rowIndex))
-			{
-				// we could check if this cell should be editable, but would involve
-				// determining the primary monitor and checking if monitor is enabled etc.,
-				// but we cheat by checking the cell background colour, which we have already
-				// set if the cell is editable
-				DataGridViewCellStyle style = dataGridView.Rows[rowIndex].Cells[columnIndex].Style;
-				if (style.BackColor == EditableCellColour)
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		bool IsLegalCell(int columnIndex, int rowIndex)
-		{
-			if (columnIndex >= 0 && columnIndex < dataGridView.ColumnCount)
-			{
-				if (rowIndex >= 0 && rowIndex < dataGridView.RowCount)
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		private void toolStripMenuItemChangePrimary_Click(object sender, EventArgs e)
-		{
-			int col = GetSelectedCol();
-			if (col >= 0)
-			{
-				_generalModule.MakePrimary(col);
-			}
-		}
-
-		private void toolStripMenuItemEditName_Click(object sender, EventArgs e)
-		{
-			int col = GetSelectedCol();
-			if (col >= 0)
-			{
-				ShowEditNameDlg(col);
-			}
-		}
-
-		private void toolStripMenuItemChangeBrightness_Click(object sender, EventArgs e)
-		{
-			int col = GetSelectedCol();
-			if (col >= 0)
-			{
-				ShowBrightnessDlg(col);
-			}
-		}
-
-		private void toolStripMenuItemChangeContrast_Click(object sender, EventArgs e)
-		{
-			int col = GetSelectedCol();
-			if (col >= 0)
-			{
-				ShowContrastDlg(col);
-			}
-		}
-
-		private void toolStripMenuItemChangeOrientation_Click(object sender, EventArgs e)
-		{
-			int col = GetSelectedCol();
-			if (col >= 0)
-			{
-				ShowOrientationDlg(col);
-			}
-		}
-
-		int GetSelectedCol()
-		{
-			if (dataGridView.SelectedCells.Count > 0)
-			{
-				return dataGridView.SelectedCells[0].ColumnIndex;
 			}
 
 			return -1;
+		}
+
+		void Map_MonitorClicked(object sender, int monitorIndex)
+		{
+			// the map uses DMT's monitor order, the display devices may be in a different order
+			System.Drawing.Rectangle bounds = Monitor.AllMonitors[monitorIndex].Bounds;
+			int device = IndexOf(_displayDevices.Items, d => d.IsActive && d.Bounds == bounds);
+			if (device >= 0)
+			{
+				_selectedDevice = device;
+				ShowSelected();
+			}
+		}
+
+		void ShowSelected()
+		{
+			IList<DisplayDevice> devices = _displayDevices.Items;
+			if (_selectedDevice < 0 || _selectedDevice >= devices.Count)
+			{
+				return;
+			}
+
+			DisplayDevice device = devices[_selectedDevice];
+
+			// highlight it on the map
+			int mapIndex = Monitor.AllMonitors.FindIndex(m => m.Bounds == device.Bounds);
+			_map.Selected = mapIndex >= 0 ? new List<int> { mapIndex } : new List<int>();
+
+			string name = device.GetMonitorName();
+			string brand = string.IsNullOrEmpty(device.FriendlyName) ? device.SourceName : device.FriendlyName;
+			_monitorCard.Title = string.Format("Screen {0} · {1}", mapIndex + 1, string.IsNullOrEmpty(name) ? brand : name);
+			_monitorCard.Description = string.Format("{0} × {1}{2}", device.Bounds.Width, device.Bounds.Height, device.IsPrimary ? " · main display" : string.Empty);
+			_makePrimary.Enabled = device.IsActive && !device.IsPrimary;
+			_rename.Enabled = !string.IsNullOrEmpty(device.GetMonitorId());
+			_rotate.Enabled = device.IsActive;
+
+			NumericRange brightness = device.GetBrightness();
+			_brightnessCard.Description = brightness.Editable ? brightness.GetCurDisplayableValue() : "This monitor doesn't let Windows change its brightness";
+			_brightnessCard.Action.Enabled = device.IsActive && brightness.Editable;
+
+			NumericRange contrast = device.GetContrast();
+			_contrastCard.Description = contrast.Editable ? contrast.GetCurDisplayableValue() : "This monitor doesn't let Windows change its contrast";
+			_contrastCard.Action.Enabled = device.IsActive && contrast.Editable;
+
+			StringBuilder details = new StringBuilder();
+			AppendDetail(details, "Brand", brand);
+			AppendDetail(details, "Description", device.Description);
+			AppendDetail(details, "Graphics card", device.GPU);
+			AppendDetail(details, "Connection", device.OutputTechnology);
+			AppendDetail(details, "Orientation", device.RotationDegrees + "°");
+			AppendDetail(details, "Colour depth", device.BitsPerPixel + " bits per pixel");
+			AppendDetail(details, "Area", string.Format("({0}, {1}) – ({2}, {3})", device.Bounds.Left, device.Bounds.Top, device.Bounds.Right - 1, device.Bounds.Bottom - 1));
+			AppendDetail(details, "Working area", string.Format("({0}, {1}) – ({2}, {3})", device.WorkingArea.Left, device.WorkingArea.Top, device.WorkingArea.Right - 1, device.WorkingArea.Bottom - 1));
+			AppendDetail(details, "Windows name", device.SourceName);
+			_details.Text = details.ToString().TrimEnd();
+		}
+
+		static void AppendDetail(StringBuilder details, string label, string value)
+		{
+			if (!string.IsNullOrEmpty(value))
+			{
+				details.AppendLine(label + ":  " + value);
+			}
 		}
 	}
 }

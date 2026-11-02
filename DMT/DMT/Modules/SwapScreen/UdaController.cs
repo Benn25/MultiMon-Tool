@@ -138,10 +138,20 @@ namespace DMT.Modules.SwapScreen
 		/// <returns>true if user OK'd the HotKeyForm</returns>
 		public bool Edit()
 		{
+			return Edit(null);
+		}
+
+		/// <summary>
+		/// Show the UdaForm to allow the area and hotkey to be changed.
+		/// </summary>
+		/// <param name="owner">Window that owns the dialog</param>
+		/// <returns>true if user OK'd the UdaForm</returns>
+		public bool Edit(IWin32Window owner)
+		{
 			bool edited = false;
 
 			UdaForm dlg = new UdaForm(this);
-			if (dlg.ShowDialog() == DialogResult.OK)
+			if (dlg.ShowDialog(owner) == DialogResult.OK)
 			{
 				// persist the new values
 				_settingsService.SaveSettings();
@@ -173,6 +183,23 @@ namespace DMT.Modules.SwapScreen
 			// update these values in the settings, but don't persist yet
 			UpdateSettings();
 			return true;
+		}
+
+		/// <summary>
+		/// Gets a value indicating whether the user has set up this area
+		/// </summary>
+		public bool IsDefined
+		{
+			get { return !string.IsNullOrEmpty(Description) || !Position.IsEmpty || HotKey.HotKeyCombo.Enabled; }
+		}
+
+		/// <summary>
+		/// Removes the area, freeing it up for re-use
+		/// </summary>
+		public void Clear()
+		{
+			SetValues(KeyCombo.DisabledComboValue, Rectangle.Empty, string.Empty);
+			_settingsService.SaveSettings();
 		}
 
 		/// <summary>

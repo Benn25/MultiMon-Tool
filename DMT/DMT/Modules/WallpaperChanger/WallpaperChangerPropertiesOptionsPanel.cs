@@ -2,254 +2,292 @@
 // This file is part of Dual Monitor Tools which is a set of tools to assist
 // users with multiple monitor setups.
 // Copyright (C) 2015  Gerald Evans
-// 
+//
 // Dual Monitor Tools is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
+using System;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Windows.Forms;
+using DMT.Library.Ui;
+using DMT.Library.Wallpaper;
+using DMT.Library.WallpaperPlugin;
+
 namespace DMT.Modules.WallpaperChanger
 {
-	using System;
-	using System.Collections.Generic;
-	using System.ComponentModel;
-	using System.Data;
-	using System.Diagnostics;
-	using System.Drawing;
-	using System.Linq;
-	using System.Text;
-	using System.Windows.Forms;
-
-	using DMT.Library.Wallpaper;
-	using DMT.Library.WallpaperPlugin;
-	using DMT.Resources;
-
 	/// <summary>
-	/// Options panel for the wallpaper changers properties
+	/// Shows the current wallpaper and where each screen's image came from
 	/// </summary>
-	partial class WallpaperChangerPropertiesOptionsPanel : UserControl
+	class WallpaperChangerPropertiesOptionsPanel : SettingsPage
 	{
 		WallpaperChangerModule _wallpaperChangerModule;
+		WallpaperPreview _preview;
+		TextBlock _hint;
+		SettingsCard _providerCard;
+		SettingsCard _sourceCard;
+		SettingsCard _photographerCard;
+		SettingsCard _detailsCard;
+		SettingsCard _sizeCard;
 
-		int _selectedScreenIndex = 0;	// We show information for image on this zero based monitor
-
-		// This is the centered rectangle within the picture box
-		// that we will use to display a preview of the wallpaper
-		Rectangle _previewRect;
-
-		/// <summary>
-		/// Initialises a new instance of the <see cref="WallpaperChangerPropertiesOptionsPanel" /> class.
-		/// </summary>
-		/// <param name="wallpaperChangerModule">The wallpaper changer module</param>
 		public WallpaperChangerPropertiesOptionsPanel(WallpaperChangerModule wallpaperChangerModule)
 		{
 			_wallpaperChangerModule = wallpaperChangerModule;
 
-			InitializeComponent();
+			_hint = AddText("The wallpaper that DMT made. Click a screen to see where its image came from.");
+			_preview = Add(new WallpaperPreview(), 16);
+			_preview.ScreenClicked += (s, e) => ShowSourceImageInfo();
+
+			AddHeader("About this image");
+			_providerCard = AddLinkCard("Source", Theme.GlyphFolder);
+			_sourceCard = AddLinkCard("Image", Theme.GlyphPhoto);
+			_photographerCard = AddLinkCard("Photographer", Theme.GlyphCamera);
+			_detailsCard = AddLinkCard("More information", Theme.GlyphInfo);
+			_sizeCard = AddCard("Original size", string.Empty, Theme.GlyphFullScreen);
+
+			ShowNewWallpaper();
 		}
 
 		/// <summary>
-		/// This informs us that the time to the next change has changed
+		/// Not shown on this page (the module also calls this on the general page)
 		/// </summary>
-		/// <param name="nextChangeMsg">Message saying when next change is</param>
-		/// <param name="foreColor">Foreground colour to use for message</param>
 		public void ShowNextChange(string nextChangeMsg, Color foreColor)
 		{
-			////if (labelNextChange != null)
-			////{
-			////	labelNextChange.Text = nextChangeMsg;
-			////	labelNextChange.ForeColor = foreColor;
-			////}
 		}
 
 		/// <summary>
-		/// Generate and show new wallpaper
+		/// Shows the latest wallpaper (called by the module when the wallpaper changes)
 		/// </summary>
 		public void ShowNewWallpaper()
 		{
+			if (IsDisposed)
+			{
+				return;
+			}
+
 			Image sourceImage = _wallpaperChangerModule.Desktop.CurrentWallpaperImage;
 			IWallpaperCompositor compositor = _wallpaperChangerModule.Desktop.CurrentCompositor;
-			if (sourceImage != null && compositor != null)
-			{
-				Size sourceSize = sourceImage.Size;
-				Rectangle pictureBoxRect = new Rectangle(new Point(0, 0), picPreview.Size);
-				//_previewRect = WallpaperCompositor.UnderStretch(sourceSize, pictureBoxRect);
-				_previewRect = ImageFitter.UnderStretch(sourceSize, pictureBoxRect);
-
-				Image preview = new Bitmap(_previewRect.Width, _previewRect.Height);
-
-				using (Graphics g = Graphics.FromImage(preview))
-				{
-					g.DrawImage(sourceImage, 0, 0, preview.Width, preview.Height);
-
-					// now indicate the positions of the monitors
-					DisplayMonitors(compositor, g);
-					ShowSourceImageInfo();
-
-					// change label to indicate properties actually shown
-					labelProperties.Text = WallpaperStrings.WallpaperPropertiesDescription;
-				}
-
-				// display preview
-				if (picPreview.Image != null)
-				{
-					picPreview.Image.Dispose();
-				}
-
-				picPreview.Image = preview;
-			}
+			_preview.SetWallpaper(sourceImage, compositor);
+			_hint.Text = sourceImage != null && compositor != null
+				? "The wallpaper that DMT made. Click a screen to see where its image came from."
+				: "Details will appear here once DMT has made a wallpaper.";
+			ShowSourceImageInfo();
 		}
 
-		void DisplayMonitors(IWallpaperCompositor compositor, Graphics g)
+		SettingsCard AddLinkCard(string title, string glyph)
 		{
-			for (int screenIndex = 0; screenIndex < compositor.AllScreens.Count; screenIndex++)
+			FluentButton open = new FluentButton("Open", Theme.GlyphOpen, ButtonKind.Subtle);
+			open.Click += (s, e) =>
 			{
-				string screenName = string.Format("{0}", screenIndex + 1);
-				////if (compositor.AllScreens[screenIndex].Primary)
-				////{
-				////	screenName += "P";
-				////}
-				DisplayMonitor(compositor, g, compositor.AllScreens[screenIndex].ScreenRect, screenIndex, screenName);
-			}
-		}
-
-		void DisplayMonitor(IWallpaperCompositor compositor, Graphics g, Rectangle screenRect, int screenIndex, string screenName)
-		{
-			////Rectangle previewRect = new Rectangle(new Point(0, 0), previewSize);
-
-			// need to determine position of screen rect in the preview
-			Rectangle picBoxRect = new Rectangle(new Point(0, 0), _previewRect.Size);
-			Rectangle previewScreen = WallpaperCompositor.CalcDestRect(compositor.DesktopRect, picBoxRect, screenRect);
-
-			// TODO: look into this!
-			previewScreen = new Rectangle(previewScreen.Left, previewScreen.Top, previewScreen.Width - 1, previewScreen.Height - 1);
-
-			// draw border around screen
-			Pen borderPen1 = Pens.Black;
-			Pen borderPen2 = Pens.White;
-			Brush textBrush = Brushes.White;
-			if (screenIndex == _selectedScreenIndex)
-			{
-				borderPen1 = Pens.Yellow;
-				borderPen2 = Pens.Yellow;
-				textBrush = Brushes.Yellow;
-			}
-
-			// leave outermost pixels of image visible
-			previewScreen.Inflate(-1, -1);
-			g.DrawRectangle(borderPen1, previewScreen);
-			previewScreen.Inflate(-1, -1);
-			g.DrawRectangle(borderPen2, previewScreen);
-
-			// display the screen name centered in the screen
-			using (Font font = new Font("Arial", 24, FontStyle.Bold, GraphicsUnit.Point))
-			{
-				g.DrawString(screenName, font, textBrush, previewScreen);
-			}
+				string url = open.Tag as string;
+				if (!string.IsNullOrEmpty(url))
+				{
+					try
+					{
+						Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+					}
+					catch (Exception)
+					{
+						// nothing useful we can do
+					}
+				}
+			};
+			return AddCard(title, string.Empty, glyph, open);
 		}
 
 		void ShowSourceImageInfo()
 		{
-			ProviderImage providerImage = _wallpaperChangerModule.Desktop.GetProviderImage(_selectedScreenIndex);
+			ProviderImage providerImage = _wallpaperChangerModule.Desktop.GetProviderImage(_preview.SelectedScreen);
 			if (providerImage == null)
 			{
-				// remove any existing info
-				ClearLink(linkLabelProvider);
-				ClearLink(linkLabelSource);
-				ClearLink(linkLabelPhotographer);
-				ClearLink(linkLabelDetails);
-				ClearLink(linkLabelSourceSize);
+				ShowLink(_providerCard, null, null);
+				ShowLink(_sourceCard, null, null);
+				ShowLink(_photographerCard, null, null);
+				ShowLink(_detailsCard, null, null);
+				_sizeCard.Description = "—";
+				return;
 			}
-			else
+
+			ShowLink(_providerCard, providerImage.Provider, providerImage.ProviderUrl);
+			ShowLink(_sourceCard, providerImage.Source, providerImage.SourceUrl);
+			ShowLink(_photographerCard, providerImage.Photographer, providerImage.PhotographerUrl);
+			ShowLink(_detailsCard, providerImage.MoreInfo, providerImage.MoreInfoUrl);
+			_sizeCard.Description = providerImage.Image != null ? string.Format("{0} × {1}", providerImage.Image.Width, providerImage.Image.Height) : "—";
+		}
+
+		static void ShowLink(SettingsCard card, string text, string url)
+		{
+			card.Description = string.IsNullOrEmpty(text) ? "—" : text;
+			card.Action.Tag = url;
+			card.Action.Visible = !string.IsNullOrEmpty(url);
+		}
+
+		/// <summary>
+		/// Draws the wallpaper with the screens outlined; a screen can be clicked to select it
+		/// </summary>
+		class WallpaperPreview : ThemedControl, IHeightForWidth
+		{
+			Image _image;
+			IWallpaperCompositor _compositor;
+			Bitmap _scaled;
+			Rectangle _imageRect;
+
+			public WallpaperPreview()
 			{
-				ShowLink(linkLabelProvider, providerImage.Provider, providerImage.ProviderUrl);
-				ShowLink(linkLabelSource, providerImage.Source, providerImage.SourceUrl);
-				ShowLink(linkLabelPhotographer, providerImage.Photographer, providerImage.PhotographerUrl);
-				ShowLink(linkLabelDetails, providerImage.MoreInfo, providerImage.MoreInfoUrl);
-				string imageDimensions = "";
-				if (providerImage.Image != null)
+				SetStyle(ControlStyles.Selectable, false);
+				Cursor = Cursors.Hand;
+			}
+
+			public event EventHandler ScreenClicked;
+
+			public int SelectedScreen { get; private set; }
+
+			public void SetWallpaper(Image image, IWallpaperCompositor compositor)
+			{
+				_image = image;
+				_compositor = compositor;
+				if (_scaled != null)
 				{
-					imageDimensions = string.Format("{0} * {1}", providerImage.Image.Width, providerImage.Image.Height);
+					_scaled.Dispose();
+					_scaled = null;
 				}
-				ShowLink(linkLabelSourceSize, imageDimensions, null);
-			}
-		}
 
-		void ShowLink(LinkLabel linkLabel, string text, string url)
-		{
-			linkLabel.Links.Clear();
-			linkLabel.Text = text;
-			if (!string.IsNullOrEmpty(url))
-			{
-				linkLabel.Links.Add(0, text.Length, url);
-			}
-		}
-
-		void ClearLink(LinkLabel linkLabel)
-		{
-			linkLabel.Links.Clear();
-			linkLabel.Text = string.Empty;
-		}
-
-		private void linkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-		{
-			ProcessStartInfo startInfo = new ProcessStartInfo(e.Link.LinkData.ToString()) { UseShellExecute = true };
-			Process.Start(startInfo);
-		}
-
-		private void WallpaperChangerPropertiesOptionsPanel_Load(object sender, EventArgs e)
-		{
-			ShowNewWallpaper();
-		}
-
-		private void picPreview_MouseClick(object sender, MouseEventArgs e)
-		{
-			// check if the area clicked belongs to one of the screens
-			int screenIndex = PosnToScreen(e.X, e.Y);
-			if (screenIndex >= 0)
-			{
-				if (screenIndex != _selectedScreenIndex)
+				if (_compositor != null && SelectedScreen >= _compositor.AllScreens.Count)
 				{
-					_selectedScreenIndex = screenIndex;
-					ShowNewWallpaper();
+					SelectedScreen = 0;
+				}
+
+				Invalidate();
+			}
+
+			public int GetHeightForWidth(int width)
+			{
+				if (_image == null)
+				{
+					return S(120);
+				}
+
+				return Math.Min((int)((long)width * _image.Height / _image.Width), S(360));
+			}
+
+			protected override void Dispose(bool disposing)
+			{
+				if (disposing && _scaled != null)
+				{
+					_scaled.Dispose();
+				}
+
+				base.Dispose(disposing);
+			}
+
+			protected override void OnResize(EventArgs e)
+			{
+				base.OnResize(e);
+				if (_scaled != null)
+				{
+					_scaled.Dispose();
+					_scaled = null;
 				}
 			}
-		}
 
-		private int PosnToScreen(int x, int y)
-		{
-			int ret = -1;
-			IWallpaperCompositor compositor = _wallpaperChangerModule.Desktop.CurrentCompositor;
-
-			if (compositor != null)
+			Rectangle ScreenRect(int screenIndex)
 			{
-				if (_previewRect.Contains(x, y))
-				{
-					// now map this onto the virtual desktop
-					Point desktopPoint = WallpaperCompositor.CalcDestPoint(_previewRect, compositor.DesktopRect, new Point(x, y));
+				return WallpaperCompositor.CalcDestRect(_compositor.DesktopRect, _imageRect, _compositor.AllScreens[screenIndex].ScreenRect);
+			}
 
-					// now check each screen to see if it contains this point
-					for (int screenIndex = 0; screenIndex < compositor.AllScreens.Count; screenIndex++)
+			protected override void OnMouseClick(MouseEventArgs e)
+			{
+				base.OnMouseClick(e);
+				if (_compositor == null)
+				{
+					return;
+				}
+
+				for (int i = 0; i < _compositor.AllScreens.Count; i++)
+				{
+					if (ScreenRect(i).Contains(e.Location))
 					{
-						if (compositor.AllScreens[screenIndex].ScreenRect.Contains(desktopPoint.X, desktopPoint.Y))
+						SelectedScreen = i;
+						Invalidate();
+						if (ScreenClicked != null)
 						{
-							ret = screenIndex;
-							break;
+							ScreenClicked(this, EventArgs.Empty);
 						}
+
+						break;
 					}
 				}
 			}
 
-			return ret;
+			protected override void OnPaint(PaintEventArgs e)
+			{
+				Graphics g = e.Graphics;
+				g.Clear(ParentBackColor);
+
+				if (_image == null || _compositor == null)
+				{
+					Theme.FillRounded(g, ClientRectangle, S(6), Theme.Surface, Theme.Stroke);
+					TextRenderer.DrawText(g, "No wallpaper yet", Theme.GetFont(TextRole.Body, DeviceDpi), ClientRectangle, Theme.TextTertiary,
+						TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+					return;
+				}
+
+				_imageRect = ImageFitter.UnderStretch(_image.Size, ClientRectangle);
+				if (_scaled == null || _scaled.Size != _imageRect.Size)
+				{
+					if (_scaled != null)
+					{
+						_scaled.Dispose();
+					}
+
+					// scaling the full size wallpaper is slow, so only do it when the size changes
+					_scaled = new Bitmap(Math.Max(1, _imageRect.Width), Math.Max(1, _imageRect.Height));
+					using (Graphics sg = Graphics.FromImage(_scaled))
+					{
+						sg.InterpolationMode = InterpolationMode.HighQualityBicubic;
+						sg.DrawImage(_image, 0, 0, _scaled.Width, _scaled.Height);
+					}
+				}
+
+				g.SmoothingMode = SmoothingMode.AntiAlias;
+				using (GraphicsPath clip = Theme.RoundedRect(_imageRect, S(6)))
+				{
+					g.SetClip(clip);
+					g.DrawImage(_scaled, _imageRect.Location);
+					g.ResetClip();
+				}
+
+				Font font = Theme.GetFont(TextRole.Subtitle, DeviceDpi);
+				for (int i = 0; i < _compositor.AllScreens.Count; i++)
+				{
+					Rectangle screen = Rectangle.Inflate(ScreenRect(i), -S(2), -S(2));
+					bool selected = i == SelectedScreen;
+					using (Pen pen = new Pen(selected ? Theme.Accent : Color.FromArgb(160, Color.White), S(selected ? 3 : 1)))
+					using (GraphicsPath path = Theme.RoundedRect(screen, S(5)))
+					{
+						g.DrawPath(pen, path);
+					}
+
+					// the screen number on a small dark badge so it's readable on any image
+					string number = (i + 1).ToString();
+					Size size = TextRenderer.MeasureText(number, font, Size.Empty, TextFormatFlags.NoPadding);
+					Rectangle badge = new Rectangle(screen.Left + S(8), screen.Top + S(8), size.Width + S(16), size.Height + S(4));
+					Theme.FillRounded(g, badge, S(4), Color.FromArgb(170, 0, 0, 0));
+					TextRenderer.DrawText(g, number, font, badge, Color.White, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
+				}
+			}
 		}
 	}
 }

@@ -2,59 +2,64 @@
 // This file is part of Dual Monitor Tools which is a set of tools to assist
 // users with multiple monitor setups.
 // Copyright (C) 2015  Gerald Evans
-// 
+//
 // Dual Monitor Tools is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
+using System;
+using System.Collections.ObjectModel;
+using System.Windows.Forms;
+using DMT.Library.Ui;
+using DMT.Resources;
+
 namespace DMT.Modules.Launcher
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Collections.ObjectModel;
-	using System.ComponentModel;
-	using System.Data;
-	using System.Drawing;
-	using System.Linq;
-	using System.Text;
-	using System.Threading.Tasks;
-	using System.Windows.Forms;
-
-	using DMT.Resources;
-
 	/// <summary>
-	/// Option panel for Launcher's import options
+	/// Import, export and delete magic words
 	/// </summary>
-	partial class LauncherImportOptionsPanel : UserControl
+	class LauncherImportOptionsPanel : SettingsPage
 	{
 		LauncherModule _launcherModule;
 
-		/// <summary>
-		/// Initialises a new instance of the <see cref="LauncherImportOptionsPanel" /> class.
-		/// </summary>
-		/// <param name="launcherModule">Launcher module</param>
 		public LauncherImportOptionsPanel(LauncherModule launcherModule)
 		{
 			_launcherModule = launcherModule;
 
-			InitializeComponent();
+			AddHeader("Back up and restore");
+			FluentButton importXml = new FluentButton("Import", "");
+			importXml.Click += ImportXml_Click;
+			FluentButton exportXml = new FluentButton("Export", "");
+			exportXml.Click += ExportXml_Click;
+			AddCard("Magic words file", "DMT's own XML format (also used by DualLauncher)", Theme.GlyphCommand, new HStack(importXml, exportXml));
+
+			AddHeader("Bring words from other launchers");
+			FluentButton importQrs = new FluentButton("Import", "");
+			importQrs.Click += ImportQrs_Click;
+			AddCard("SlickRun magic words", "QRS files", Theme.GlyphSwap, importQrs);
+
+			AddHeader("Start again");
+			FluentButton deleteAll = new FluentButton("Delete all", Theme.GlyphDelete);
+			deleteAll.Click += DeleteAll_Click;
+			AddCard("Delete every magic word", "You'll be asked to confirm. Export them first if you might want them back.", Theme.GlyphDelete, deleteAll);
 		}
 
-		private void buttonDeleteAll_Click(object sender, EventArgs e)
+		void DeleteAll_Click(object sender, EventArgs e)
 		{
 			if (_launcherModule.MagicWords.Count > 0)
 			{
 				if (MessageBox.Show(
+					FindForm(),
 					LauncherStrings.ConfirmDelAllMW,
 					CommonStrings.MyTitle,
 					MessageBoxButtons.YesNo,
@@ -66,55 +71,48 @@ namespace DMT.Modules.Launcher
 			}
 		}
 
-		private void buttonImportXml_Click(object sender, EventArgs e)
+		void ImportXml_Click(object sender, EventArgs e)
 		{
-			OpenFileDialog dlg = new OpenFileDialog();
-			dlg.Filter = LauncherStrings.XmlFilter;
-			if (dlg.ShowDialog() == DialogResult.OK)
+			Import(LauncherStrings.XmlFilter, XmlImporter.Import);
+		}
+
+		void ImportQrs_Click(object sender, EventArgs e)
+		{
+			Import(LauncherStrings.QrsFilter, QrsImporter.Import);
+		}
+
+		void Import(string filter, Func<string, Collection<MagicWord>> importer)
+		{
+			using (OpenFileDialog dlg = new OpenFileDialog { Filter = filter })
 			{
-				try
+				if (dlg.ShowDialog(FindForm()) == DialogResult.OK)
 				{
-					Collection<MagicWord> importedWords = XmlImporter.Import(dlg.FileName);
-					_launcherModule.MagicWords.Merge(importedWords);
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show(ex.Message, CommonStrings.MyTitle);
+					try
+					{
+						_launcherModule.MagicWords.Merge(importer(dlg.FileName));
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show(FindForm(), ex.Message, CommonStrings.MyTitle);
+					}
 				}
 			}
 		}
 
-		private void buttonExportXml_Click(object sender, EventArgs e)
+		void ExportXml_Click(object sender, EventArgs e)
 		{
-			SaveFileDialog dlg = new SaveFileDialog();
-			dlg.Filter = LauncherStrings.XmlFilter;
-			if (dlg.ShowDialog() == DialogResult.OK)
+			using (SaveFileDialog dlg = new SaveFileDialog { Filter = LauncherStrings.XmlFilter })
 			{
-				try
+				if (dlg.ShowDialog(FindForm()) == DialogResult.OK)
 				{
-					XmlImporter.Export(_launcherModule.MagicWords, dlg.FileName);
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show(ex.Message, CommonStrings.MyTitle);
-				}
-			}
-		}
-
-		private void buttonImportQrs_Click(object sender, EventArgs e)
-		{
-			OpenFileDialog dlg = new OpenFileDialog();
-			dlg.Filter = LauncherStrings.QrsFilter;
-			if (dlg.ShowDialog() == DialogResult.OK)
-			{
-				try
-				{
-					Collection<MagicWord> importedWords = QrsImporter.Import(dlg.FileName);
-					_launcherModule.MagicWords.Merge(importedWords);
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show(ex.Message, CommonStrings.MyTitle);
+					try
+					{
+						XmlImporter.Export(_launcherModule.MagicWords, dlg.FileName);
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show(FindForm(), ex.Message, CommonStrings.MyTitle);
+					}
 				}
 			}
 		}

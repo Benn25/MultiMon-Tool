@@ -37,6 +37,7 @@ namespace DMT
 
 	using Microsoft.Win32;
 	using DMT.Library.Settings;
+	using DMT.Library.Ui;
 	using Library.GuiUtils;
 
 	/// <summary>
@@ -55,6 +56,7 @@ namespace DMT
 		public AppForm()
 		{
 			InitializeComponent();
+			ThemeManager.StyleMenu(contextMenuStrip);
 
 			InitContextMenu();
 

@@ -25,9 +25,10 @@
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <ApplicationVisualStyles>true</ApplicationVisualStyles>
     <ApplicationUseCompatibleTextRendering>false</ApplicationUseCompatibleTextRendering>
-    <!-- Keep the .NET Framework default font so the existing hand-laid-out forms are unchanged.
-         Remove this once the UI has been reworked to use Segoe UI. -->
-    <ApplicationDefaultFont>Microsoft Sans Serif, 8.25pt</ApplicationDefaultFont>
+    <!-- The default font and colour mode (light/dark) are set in Program.Main from Library\Ui\Theme -->
+
+    <!-- WFO5001: SetColorMode (dark mode) is marked as experimental -->
+    <NoWarn>$(NoWarn);WFO5001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

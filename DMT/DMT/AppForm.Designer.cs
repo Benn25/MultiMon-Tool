@@ -58,7 +58,7 @@
 			this.optionsToolStripMenuItem.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
 			this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
 			this.optionsToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
-			this.optionsToolStripMenuItem.Text = "Options";
+			this.optionsToolStripMenuItem.Text = "Settings";
 			this.optionsToolStripMenuItem.Click += new System.EventHandler(this.optionsToolStripMenuItem_Click);
 			// 
 			// toolStripMenuItem1

@@ -2,17 +2,17 @@
 // This file is part of Dual Monitor Tools which is a set of tools to assist
 // users with multiple monitor setups.
 // Copyright (C) 2015  Gerald Evans
-// 
+//
 // Dual Monitor Tools is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
@@ -20,25 +20,24 @@
 namespace DMT.Library.HotKeys
 {
 	using System;
-	using System.Collections.Generic;
-	using System.ComponentModel;
-	using System.Data;
-	using System.Drawing;
-	using System.Linq;
-	using System.Text;
-	using System.Threading.Tasks;
 	using System.Windows.Forms;
 
+	using DMT.Library.Ui;
 	using DMT.Resources;
-	using GuiUtils;
 
 	/// <summary>
-	/// Dialog for editing a hotkey
+	/// Dialog for editing a hotkey.
+	/// The user can just press the key combination they want,
+	/// or pick the modifiers and key by hand (for keys that Windows grabs first).
 	/// </summary>
-	public partial class HotKeyForm : Form
+	class HotKeyForm : ContentDialog
 	{
 		// hotkey being edited
 		HotKey _hotKey;
+
+		ShortcutEditor _editor;
+		ToggleSwitch _enableSwitch;
+		InfoBar _errorBar;
 
 		/// <summary>
 		/// Initialises a new instance of the <see cref="HotKeyForm" /> class.
@@ -46,83 +45,88 @@ namespace DMT.Library.HotKeys
 		/// <param name="hotKey">The hotkey to edit</param>
 		/// <param name="decription">A short description of the function of the hotkey.</param>
 		/// <param name="note">Further information relating to the hotkey.
-		/// If the functionality of this hotkey is provided by Windows 7, 
+		/// If the functionality of this hotkey is provided by Windows 7,
 		/// then currently we use this note to advise the user of this fact.</param>
-		public HotKeyForm(HotKey hotKey, string decription, string note)
+		internal HotKeyForm(HotKey hotKey, string decription, string note)
+			: base("Edit shortcut")
 		{
-			InitializeComponent();
+			_hotKey = hotKey;
 
-			labelDescription.Text = decription;
+			Body.Add(new TextBlock(decription, TextRole.Body, TextTone.Secondary));
 
-			if (note != null && note.Length > 0)
+			_editor = Body.Add(new ShortcutEditor(), 16);
+			_editor.KeyCombo = hotKey.HotKeyCombo;
+			_editor.InvalidKey += (s, message) => ShowError(message);
+			_editor.KeyComboChanged += (s, e) =>
 			{
-				lblNote.Text = note;
+				_enableSwitch.Checked = true;
+				HideError();
+			};
+
+			_enableSwitch = new ToggleSwitch();
+			_enableSwitch.Checked = hotKey.HotKeyCombo.Enabled || hotKey.HotKeyCombo.KeyCode == Keys.None;
+			_enableSwitch.CheckedChanged += (s, e) => _editor.Enabled = _enableSwitch.Checked;
+			_editor.Enabled = _enableSwitch.Checked;
+			Body.Add(new SettingsCard("Shortcut enabled", null, null, _enableSwitch), 20);
+
+			if (!string.IsNullOrEmpty(note))
+			{
+				Body.Add(new InfoBar(Severity.Info, null, note), 12);
 			}
-			else
+
+			_errorBar = Body.Add(new InfoBar(Severity.Error, null, string.Empty), 12);
+			_errorBar.Visible = false;
+
+			PrimaryButton.Text = "Save";
+			PrimaryButton.Click += PrimaryButton_Click;
+		}
+
+		protected override void OnShown(EventArgs e)
+		{
+			base.OnShown(e);
+			_editor.FocusCapture();
+		}
+
+		void ShowError(string message)
+		{
+			_errorBar.Text = message;
+			if (!_errorBar.Visible)
 			{
-				HideNoteBox();
+				_errorBar.Visible = true;
+				FitToContent();
 			}
-
-			this._hotKey = hotKey;
-			keyComboPanel.KeyCombo = hotKey.HotKeyCombo;
-			checkBoxEnable.Checked = hotKey.HotKeyCombo.Enabled;
-			UpdateEnableStatus();
 		}
 
-		private void HotKeyForm_Load(object sender, EventArgs e)
+		void HideError()
 		{
-		}
-
-		// Hides the (yellow) box where we would normally display the note
-		private void HideNoteBox()
-		{
-			// adjust the clent size to hide the note box
-			Size clientSize = this.ClientSize;
-			clientSize.Height = lblNote.Location.Y;
-			this.ClientSize = clientSize;
-		}
-
-		private void checkBoxEnable_CheckedChanged(object sender, EventArgs e)
-		{
-			UpdateEnableStatus();
-		}
-
-		private void buttonOK_Click(object sender, EventArgs e)
-		{
-			// get the hotkey from the panel
-			KeyCombo keyCombo = keyComboPanel.KeyCombo;
-
-			// and disable/enable it depending on the checkbox
-			keyCombo.Enabled = checkBoxEnable.Checked;
-
-			if (keyCombo.Enabled)
+			if (_errorBar.Visible)
 			{
-				if (keyCombo.KeyCode == (Keys)0)
-				{
-					MsgDlg.UserError(CommonStrings.NoKey);
-					return;
-				}
+				_errorBar.Visible = false;
+				FitToContent();
+			}
+		}
+
+		void PrimaryButton_Click(object sender, EventArgs e)
+		{
+			KeyCombo keyCombo = _editor.KeyCombo;
+			keyCombo.Enabled = _enableSwitch.Checked;
+
+			if (keyCombo.Enabled && keyCombo.KeyCode == (Keys)0)
+			{
+				ShowError(CommonStrings.NoKey);
+				return;
 			}
 
 			// attempt to register this hotkey
 			if (!_hotKey.RegisterHotKey(keyCombo))
 			{
-				MsgDlg.UserError(CommonStrings.RegisterFail);
+				ShowError(CommonStrings.RegisterFail);
 				return;
 			}
 
 			// hotkey is OK
 			DialogResult = DialogResult.OK;
 			Close();
-		}
-
-		private void buttonCancel_Click(object sender, EventArgs e)
-		{
-		}
-
-		private void UpdateEnableStatus()
-		{
-			keyComboPanel.Enabled = checkBoxEnable.Checked;
 		}
 	}
 }

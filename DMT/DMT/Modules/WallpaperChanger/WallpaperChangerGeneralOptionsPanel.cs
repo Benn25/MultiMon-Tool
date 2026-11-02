@@ -1,341 +1,187 @@
 ﻿#region copyright
 // This file is part of Dual Monitor Tools which is a set of tools to assist
 // users with multiple monitor setups.
-// Copyright (C) 2015-2024  Gerald Evans
-// 
+// Copyright (C) 2015  Gerald Evans
+//
 // Dual Monitor Tools is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
+using DMT.Library.Ui;
+using DMT.Library.Wallpaper;
+
 namespace DMT.Modules.WallpaperChanger
 {
-	using System;
-	using System.Collections.Generic;
-	using System.ComponentModel;
-	using System.Data;
-	using System.Drawing;
-	using System.Linq;
-	using System.Text;
-	using System.Threading.Tasks;
-	using System.Windows.Forms;
-
-	using DMT.Library.HotKeys;
-	using DMT.Library.Wallpaper;
-
 	/// <summary>
-	/// Options panel for the wallpaper changers general options
+	/// When and how the wallpaper is changed
 	/// </summary>
-	partial class WallpaperChangerGeneralOptionsPanel : UserControl
+	class WallpaperChangerGeneralOptionsPanel : SettingsPage
 	{
 		WallpaperChangerModule _wallpaperChangerModule;
+		SettingsCard _changeNowCard;
+		ToggleSwitch _periodic;
+		NumericUpDown _hours;
+		NumericUpDown _minutes;
+		SettingsCard _busyCard;
+		NumericUpDown _quality;
+		ToggleSwitch _aspect;
+		ToggleSwitch _clip;
+		ToggleSwitch _enlarge;
+		ToggleSwitch _shrink;
+		bool _loading = true;
 
-		/// <summary>
-		/// Initialises a new instance of the <see cref="WallpaperChangerGeneralOptionsPanel" /> class.
-		/// </summary>
-		/// <param name="wallpaperChangerModule">The wallpaper changer module</param>
 		public WallpaperChangerGeneralOptionsPanel(WallpaperChangerModule wallpaperChangerModule)
 		{
 			_wallpaperChangerModule = wallpaperChangerModule;
 
-			InitializeComponent();
+			FluentButton changeNow = new FluentButton("Change now", Theme.GlyphRefresh, ButtonKind.Accent);
+			changeNow.Click += (s, e) => _wallpaperChangerModule.UpdateWallpaper();
+			_changeNowCard = Add(new SettingsCard("New wallpaper", string.Empty, Theme.GlyphPhoto, changeNow), 0);
+			this.AddHotKey(_wallpaperChangerModule.ChangeWallpaperHotKeyController, "Shortcut for a new wallpaper", null, Theme.GlyphKeyboard);
 
-			SetupHotKeys();
+			AddHeader("When to change");
+			AddToggle("When DMT starts", null, "", _wallpaperChangerModule.ChangeOnStartup, v => _wallpaperChangerModule.ChangeOnStartup = v);
+			AddToggle("When monitors or resolutions change", null, Theme.GlyphMonitor, _wallpaperChangerModule.ChangeOnResolutionChange, v => _wallpaperChangerModule.ChangeOnResolutionChange = v);
+
+			_hours = MakeNumber(0, 24, _wallpaperChangerModule.IntervalHours, v => _wallpaperChangerModule.IntervalHours = v, 70);
+			_minutes = MakeNumber(0, 59, _wallpaperChangerModule.IntervalMinutes, v => _wallpaperChangerModule.IntervalMinutes = v, 70);
+			_periodic = new ToggleSwitch { Checked = _wallpaperChangerModule.ChangePeriodically };
+			_periodic.CheckedChanged += (s, e) =>
+			{
+				_wallpaperChangerModule.ChangePeriodically = _periodic.Checked;
+				UpdateEnabledState();
+			};
+			HStack every = new HStack(
+				new TextBlock("Every", TextRole.Body, TextTone.Secondary) { Wrap = false }, _hours,
+				new TextBlock("h", TextRole.Body, TextTone.Secondary) { Wrap = false }, _minutes,
+				new TextBlock("min", TextRole.Body, TextTone.Secondary) { Wrap = false }, _periodic) { Spacing = 8 };
+			AddCard("Regularly", null, "", every);
+
+			ToggleSwitch busy = new ToggleSwitch { Checked = _wallpaperChangerModule.DontChangeIfBusy };
+			busy.CheckedChanged += (s, e) => _wallpaperChangerModule.DontChangeIfBusy = busy.Checked;
+			_busyCard = AddCard("Not while gaming or presenting", "Skip regular changes while a full screen game or presentation is running", "", busy);
+
+			AddToggle("Fade smoothly to the new wallpaper", null, "", _wallpaperChangerModule.SmoothFade, v => _wallpaperChangerModule.SmoothFade = v);
+
+			AddHeader("Fitting images to screens");
+			StretchType.Fit fit = _wallpaperChangerModule.Fit;
+			_aspect = AddToggle("Keep the aspect ratio", null, Theme.GlyphFrame, fit.HasFlag(StretchType.Fit.MaintainAspectRatio), v => UpdateFit());
+			_clip = AddToggle("Crop to avoid bars", "Fill the screen, cutting off the edges of the image if needed", "", fit.HasFlag(StretchType.Fit.ClipImage), v => UpdateFit());
+			_enlarge = AddToggle("Enlarge small images", null, Theme.GlyphFullScreen, fit.HasFlag(StretchType.Fit.AllowEnlarge), v => UpdateFit());
+			_shrink = AddToggle("Shrink large images", null, "", fit.HasFlag(StretchType.Fit.AllowShrink), v => UpdateFit());
+
+			List<SwitchType> switchTypes = SwitchType.AllTypes();
+			SwitchType selectedSwitch = switchTypes.FirstOrDefault(t => t.Mapping == _wallpaperChangerModule.MonitorMapping);
+			ComboBox mapping = MakeCombo(switchTypes.Cast<object>(), selectedSwitch, item => _wallpaperChangerModule.MonitorMapping = ((SwitchType)item).Mapping, 260);
+			AddCard("With more than one screen", null, Theme.GlyphLayout, mapping);
+
+			ColorSwatch swatch = new ColorSwatch(_wallpaperChangerModule.BackgroundColour);
+			FluentButton pickColour = new FluentButton("Choose");
+			pickColour.Click += (s, e) =>
+			{
+				using (ColorDialog colorDialog = new ColorDialog { Color = _wallpaperChangerModule.BackgroundColour, FullOpen = true })
+				{
+					if (colorDialog.ShowDialog(FindForm()) == DialogResult.OK)
+					{
+						swatch.SwatchColor = colorDialog.Color;
+						_wallpaperChangerModule.BackgroundColour = colorDialog.Color;
+					}
+				}
+			};
+			AddCard("Background colour", "Shown around images that don't fill the screen", Theme.GlyphPalette, new HStack(swatch, pickColour));
+
+			AddHeader("Saved wallpaper");
+			List<WallpaperImageFormat> formats = WallpaperImageFormat.AllImageFormats();
+			WallpaperImageFormat selectedFormat = formats.FirstOrDefault(f => f.Format == _wallpaperChangerModule.ImageFormat);
+			_quality = MakeNumber(0, 100, _wallpaperChangerModule.ImageQuality, v => _wallpaperChangerModule.ImageQuality = v, 70);
+			ComboBox format = MakeCombo(formats.Cast<object>(), selectedFormat, item =>
+			{
+				_wallpaperChangerModule.ImageFormat = ((WallpaperImageFormat)item).Format;
+				UpdateEnabledState();
+			}, 140);
+			AddCard("File format", "The image Windows is given as the wallpaper", "", format);
+			AddCard("JPEG quality", "Higher looks better but makes a bigger file", "", _quality);
+
+			_loading = false;
+			UpdateEnabledState();
+		}
+
+		protected override void OnHandleCreated(EventArgs e)
+		{
+			base.OnHandleCreated(e);
+
+			// the module only knows about this page once it has been created, so ask now
+			_wallpaperChangerModule.UpdateTimeToChange();
 		}
 
 		/// <summary>
-		/// This informs us that the time to the next change as changed
+		/// Shows when the wallpaper will next change (called by the module)
 		/// </summary>
-		/// <param name="nextChangeMsg">Message saying when next change is</param>
-		/// <param name="foreColor">Foreground colour to use for message</param>
 		public void ShowNextChange(string nextChangeMsg, Color foreColor)
 		{
-			if (labelNextChange != null)
+			if (IsDisposed || _changeNowCard == null)
 			{
-				labelNextChange.Text = nextChangeMsg;
-				labelNextChange.ForeColor = foreColor;
-			}
-		}
-
-		private void WallpaperChangerGeneralOptionsPanel_Load(object sender, EventArgs e)
-		{
-			checkBoxChangeOnStart.Checked = _wallpaperChangerModule.ChangeOnStartup;
-			checkBoxChangeOnResolutionChange.Checked = _wallpaperChangerModule.ChangeOnResolutionChange;
-			checkBoxChangePeriodically.Checked = _wallpaperChangerModule.ChangePeriodically;
-			checkBoxDontChangeIfBusy.Checked = _wallpaperChangerModule.DontChangeIfBusy;
-			checkBoxFade.Checked = _wallpaperChangerModule.SmoothFade;
-			numericUpDownHours.Value = (decimal)_wallpaperChangerModule.IntervalHours;
-			numericUpDownMinutes.Value = (decimal)_wallpaperChangerModule.IntervalMinutes;
-
-			//FillFitComboBox();
-			ShowFitMode();
-			FillMonitorMappingComboBox();
-			FillWallpaperFormatComboBox();
-			numericUpDownQuality.Value = (decimal)_wallpaperChangerModule.ImageQuality;
-
-			pictureBoxBackgroundColour.BackColor = _wallpaperChangerModule.BackgroundColour;
-			UpdateImageQualityEnable();
-
-			// ask the module to update time to next change
-			_wallpaperChangerModule.UpdateTimeToChange();
-
-			UpdateDontChangeIfBusyEnable();
-			UpdatePeriodEnableStatus();
-		}
-
-		void ShowFitMode()
-		{
-			StretchType.Fit fit = _wallpaperChangerModule.Fit;
-			checkBoxFitAspectRatio.Checked = fit.HasFlag(StretchType.Fit.MaintainAspectRatio);
-			checkBoxFitClip.Checked = fit.HasFlag(StretchType.Fit.ClipImage);
-			checkBoxFitEnlarge.Checked = fit.HasFlag(StretchType.Fit.AllowEnlarge);
-			checkBoxFitShrink.Checked = fit.HasFlag(StretchType.Fit.AllowShrink);
-		}
-
-		///// <summary>
-		///// Once only population of the "Fit" (stretch/shrink type) combo box
-		///// </summary>
-		//void FillFitComboBox()
-		//{
-		//	comboBoxFit.Items.Clear();
-		//	List<StretchType> allStretchTypes = StretchType.AllTypes();
-		//	StretchType selectedItem = null;
-		//	foreach (StretchType stretchType in allStretchTypes)
-		//	{
-		//		comboBoxFit.Items.Add(stretchType);
-		//		if (stretchType.Type == _wallpaperChangerModule.Fit)
-		//		{
-		//			selectedItem = stretchType;
-		//		}
-		//	}
-
-		//	if (selectedItem != null)
-		//	{
-		//		comboBoxFit.SelectedItem = selectedItem;
-		//	}
-		//	else
-		//	{
-		//		// select first item
-		//		comboBoxFit.SelectedIndex = 0;
-		//	}
-		//}
-
-		/// <summary>
-		/// Once only population of the "Multi Monitor" (mode) combo box
-		/// </summary>
-		void FillMonitorMappingComboBox()
-		{
-			comboBoxMultiMonitor.Items.Clear();
-			List<SwitchType> allSwitchTypes = SwitchType.AllTypes();
-			SwitchType selectedItem = null;
-			foreach (SwitchType switchType in allSwitchTypes)
-			{
-				comboBoxMultiMonitor.Items.Add(switchType);
-				if (switchType.Mapping == _wallpaperChangerModule.MonitorMapping)
-				{
-					selectedItem = switchType;
-				}
+				return;
 			}
 
-			if (selectedItem != null)
-			{
-				comboBoxMultiMonitor.SelectedItem = selectedItem;
-			}
-			else
-			{
-				// select first item
-				comboBoxMultiMonitor.SelectedIndex = 0;
-			}
+			_changeNowCard.Description = nextChangeMsg;
 		}
 
-		/// <summary>
-		/// Once only population of the "Output wallpaper format" combo box
-		/// </summary>
-		void FillWallpaperFormatComboBox()
+		void UpdateEnabledState()
 		{
-			comboBoxFormat.Items.Clear();
-			List<WallpaperImageFormat> allImageFormats = WallpaperImageFormat.AllImageFormats();
-			WallpaperImageFormat selectedItem = null;
-			foreach (WallpaperImageFormat fileType in allImageFormats)
+			bool periodic = _periodic.Checked;
+			_hours.Enabled = periodic;
+			_minutes.Enabled = periodic;
+			_busyCard.Enabled = periodic;
+
+			WallpaperImageFormat format = WallpaperImageFormat.AllImageFormats().FirstOrDefault(f => f.Format == _wallpaperChangerModule.ImageFormat);
+			_quality.Enabled = format != null && format.Format == WallpaperImageFormat.ImageFormat.JPG;
+		}
+
+		void UpdateFit()
+		{
+			if (_loading)
 			{
-				comboBoxFormat.Items.Add(fileType);
-				if (fileType.Format == _wallpaperChangerModule.ImageFormat)
-				{
-					selectedItem = fileType;
-				}
+				return;
 			}
 
-			if (selectedItem != null)
-			{
-				comboBoxFormat.SelectedItem = selectedItem;
-			}
-			else
-			{
-				// select first item
-				comboBoxFormat.SelectedIndex = 0;
-			}
-		}
-
-		void SetupHotKeys()
-		{
-			SetupHotKey(hotKeyPanelChangeWallpaper, _wallpaperChangerModule.ChangeWallpaperHotKeyController);
-		}
-
-		void SetupHotKey(HotKeyPanel hotKeyPanel, HotKeyController hotKeyController)
-		{
-			hotKeyPanel.SetHotKeyController(hotKeyController);
-		}
-
-		private void checkBoxChangeOnStart_CheckedChanged(object sender, EventArgs e)
-		{
-			_wallpaperChangerModule.ChangeOnStartup = checkBoxChangeOnStart.Checked;
-		}
-
-		private void checkBoxChangeOnResolutionChange_CheckedChanged(object sender, EventArgs e)
-		{
-			_wallpaperChangerModule.ChangeOnResolutionChange = checkBoxChangeOnResolutionChange.Checked;
-		}
-
-		private void checkBoxChangePeriodically_CheckedChanged(object sender, EventArgs e)
-		{
-			// save the setting - will also trigger an update of time to next change
-			_wallpaperChangerModule.ChangePeriodically = checkBoxChangePeriodically.Checked;
-
-			// 'Don't change if busy' only makes sense if 'Change periodically' is true 
-			UpdateDontChangeIfBusyEnable();
-
-			// enable/disable hour/minute selection accordingly
-			UpdatePeriodEnableStatus();
-		}
-
-		private void checkBoxDontChangeIfBusy_CheckedChanged(object sender, EventArgs e)
-		{
-			_wallpaperChangerModule.DontChangeIfBusy = checkBoxDontChangeIfBusy.Checked;
-		}
-
-		private void checkBoxFade_CheckedChanged(object sender, EventArgs e)
-		{
-			_wallpaperChangerModule.SmoothFade = checkBoxFade.Checked;
-		}
-
-		private void numericUpDownHours_ValueChanged(object sender, EventArgs e)
-		{
-			_wallpaperChangerModule.IntervalHours = (int)numericUpDownHours.Value;
-		}
-
-		private void numericUpDownMinutes_ValueChanged(object sender, EventArgs e)
-		{
-			_wallpaperChangerModule.IntervalMinutes = (int)numericUpDownMinutes.Value;
-		}
-
-		private void comboBoxMultiMonitor_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			SwitchType switchType = comboBoxMultiMonitor.SelectedItem as SwitchType;
-			if (switchType != null)
-			{
-				_wallpaperChangerModule.MonitorMapping = switchType.Mapping;
-			}
-		}
-
-		//private void comboBoxFit_SelectedIndexChanged(object sender, EventArgs e)
-		//{
-		//	StretchType stretchType = comboBoxFit.SelectedItem as StretchType;
-		//	if (stretchType != null)
-		//	{
-		//		_wallpaperChangerModule.Fit = stretchType.Type;
-		//	}
-		//}
-
-		private void comboBoxFormat_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			WallpaperImageFormat imageFormat = comboBoxFormat.SelectedItem as WallpaperImageFormat;
-			if (imageFormat != null)
-			{
-				_wallpaperChangerModule.ImageFormat = imageFormat.Format;
-			}
-
-			// image format may have changed
-			UpdateImageQualityEnable();
-		}
-
-		private void numericUpDownQuality_ValueChanged(object sender, EventArgs e)
-		{
-			_wallpaperChangerModule.ImageQuality = (int)numericUpDownQuality.Value;
-		}
-
-		private void UpdateFitMode(object sender, EventArgs e)
-		{
 			StretchType.Fit newFit = StretchType.Fit.NewFit;
-			if (checkBoxFitAspectRatio.Checked)
+			if (_aspect.Checked)
 			{
 				newFit |= StretchType.Fit.MaintainAspectRatio;
 			}
-			if (checkBoxFitClip.Checked)
+
+			if (_clip.Checked)
 			{
 				newFit |= StretchType.Fit.ClipImage;
 			}
-			if (checkBoxFitEnlarge.Checked)
+
+			if (_enlarge.Checked)
 			{
 				newFit |= StretchType.Fit.AllowEnlarge;
 			}
-			if (checkBoxFitShrink.Checked)
+
+			if (_shrink.Checked)
 			{
 				newFit |= StretchType.Fit.AllowShrink;
 			}
 
 			_wallpaperChangerModule.Fit = newFit;
-		}
-
-		private void pictureBoxBackgroundColour_Click(object sender, EventArgs e)
-		{
-			ColorDialog colorDialog = new ColorDialog();
-			colorDialog.Color = _wallpaperChangerModule.BackgroundColour;
-			if (colorDialog.ShowDialog() == DialogResult.OK)
-			{
-				pictureBoxBackgroundColour.BackColor = colorDialog.Color;
-				_wallpaperChangerModule.BackgroundColour = colorDialog.Color;
-			}
-		}
-
-		private void buttonChangeWallpaper_Click(object sender, EventArgs e)
-		{
-			_wallpaperChangerModule.UpdateWallpaper();
-		}
-
-		void UpdatePeriodEnableStatus()
-		{
-			bool enabled = checkBoxChangePeriodically.Checked;
-			numericUpDownHours.Enabled = enabled;
-			numericUpDownMinutes.Enabled = enabled;
-		}
-
-		void UpdateDontChangeIfBusyEnable()
-		{
-			bool enabled = checkBoxChangePeriodically.Checked;
-			checkBoxDontChangeIfBusy.Enabled = enabled;
-		}
-
-		void UpdateImageQualityEnable()
-		{
-			// only jpg images have a quality value
-			bool enabled = false;
-
-			WallpaperImageFormat imageFormat = comboBoxFormat.SelectedItem as WallpaperImageFormat;
-			if (imageFormat != null && imageFormat.Format == WallpaperImageFormat.ImageFormat.JPG)
-			{
-				enabled = true;
-			}
-
-			numericUpDownQuality.Enabled = enabled;
 		}
 	}
 }

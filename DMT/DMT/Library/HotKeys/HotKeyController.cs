@@ -98,10 +98,39 @@ namespace DMT.Library.HotKeys
 		}
 
 		/// <summary>
+		/// Gets the key combination currently used by the hotkey
+		/// </summary>
+		public KeyCombo KeyCombo
+		{
+			get { return HotKey.HotKeyCombo; }
+		}
+
+		/// <summary>
+		/// Disables the hotkey (keeping the key combination so it can be re-enabled)
+		/// </summary>
+		public void Clear()
+		{
+			KeyCombo keyCombo = HotKey.HotKeyCombo;
+			keyCombo.Enabled = false;
+			HotKey.RegisterHotKey(keyCombo);
+			SaveKeyCombo();
+		}
+
+		/// <summary>
 		/// Show the HotKeyFrom to allow the hotkey to be changed.
 		/// </summary>
 		/// <returns>true if user OK'd the HotKeyForm</returns>
 		public bool Edit()
+		{
+			return Edit(null);
+		}
+
+		/// <summary>
+		/// Show the HotKeyFrom to allow the hotkey to be changed.
+		/// </summary>
+		/// <param name="owner">Window that owns the dialog</param>
+		/// <returns>true if user OK'd the HotKeyForm</returns>
+		public bool Edit(IWin32Window owner)
 		{
 			bool edited = false;
 
@@ -123,7 +152,7 @@ namespace DMT.Library.HotKeys
 			}
 
 			HotKeyForm dlg = new HotKeyForm(HotKey, Description, note);
-			if (dlg.ShowDialog() == DialogResult.OK)
+			if (dlg.ShowDialog(owner) == DialogResult.OK)
 			{
 				// persist the new value
 				SaveKeyCombo();

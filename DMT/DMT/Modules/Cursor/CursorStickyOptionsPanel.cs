@@ -2,55 +2,92 @@
 // This file is part of Dual Monitor Tools which is a set of tools to assist
 // users with multiple monitor setups.
 // Copyright (C) 2015  Gerald Evans
-// 
+//
 // Dual Monitor Tools is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
+using System;
+using System.Windows.Forms;
+using DMT.Library.Ui;
+using DMT.Resources;
+
 namespace DMT.Modules.Cursor
 {
-	using System;
-	using System.Collections.Generic;
-	using System.ComponentModel;
-	using System.Data;
-	using System.Drawing;
-	using System.Linq;
-	using System.Text;
-	using System.Threading.Tasks;
-	using System.Windows.Forms;
-
-	using DMT.Library.HotKeys;
-	using DMT.Resources;
-
 	/// <summary>
-	/// General options panel for the cursor module
+	/// Settings that make the cursor stick at (or stop at) the edges of the screens
 	/// </summary>
-	partial class CursorStickyOptionsPanel : UserControl
+	class CursorStickyOptionsPanel : SettingsPage
 	{
 		CursorModule _cursorModule;
 
-		/// <summary>
-		/// Initialises a new instance of the <see cref="CursorGeneralOptionsPanel" /> class.
-		/// </summary>
-		/// <param name="cursorModule">The cursor module</param>
 		public CursorStickyOptionsPanel(CursorModule cursorModule)
 		{
 			_cursorModule = cursorModule;
 
-			InitializeComponent();
+			AddText("Stop the cursor slipping onto the next screen by accident. With sticky edges you have to push a little harder to cross over; locked edges stop it completely.");
 
-			InitHotKeys();
-			InitOtherOptions();
+			AddHeader("Cursor mode");
+			this.AddHotKey(_cursorModule.FreeCursorHotKeyController, "Move freely between screens", null, "");
+			this.AddHotKey(_cursorModule.StickyCursorHotKeyController, "Sticky edges", null, Theme.GlyphPin);
+			this.AddHotKey(_cursorModule.LockCursorHotKeyController, "Lock to the current screen", null, "");
+
+			ComboBox mode = MakeCombo(260,
+				new[] { CursorStrings.FreeCursorDescription, CursorStrings.StickyCursorDescription, CursorStrings.LockCursorDescription },
+				CursorModeToString(_cursorModule.DefaultCursorMode));
+			mode.SelectedIndexChanged += (s, e) => _cursorModule.DefaultCursorMode = CursorModeFromString(mode.SelectedItem.ToString());
+			AddCard("When DMT starts", "The mode the cursor starts in", Theme.GlyphSettings, mode);
+
+			AddHeader("Stickiness");
+			Slider slider = new Slider { Minimum = 0, Maximum = 3000, SmallChange = 10, LargeChange = 100, AccessibleName = "Resistance at screen edges" };
+			slider.Value = _cursorModule.MinStickyForce;
+			slider.ValueChanged += (s, e) => _cursorModule.MinStickyForce = slider.Value;
+			HStack sliderRow = new HStack(new TextBlock("Less", TextRole.Caption, TextTone.Secondary) { Wrap = false }, slider,
+				new TextBlock("More", TextRole.Caption, TextTone.Secondary) { Wrap = false });
+			AddCard("How hard you push to cross an edge", "Used when sticky edges are on", "", sliderRow);
+
+			AddHeader("Getting past the edges");
+			ComboBox key = MakeCombo(170,
+				new[] { CommonStrings.LControlKey, CommonStrings.RControlKey, CommonStrings.LShiftKey, CommonStrings.RShiftKey },
+				FreeMovementKeyToString(_cursorModule.FreeMovementKey));
+			key.SelectedIndexChanged += (s, e) => _cursorModule.FreeMovementKey = FreeMovementKeyFromString(key.SelectedItem.ToString());
+			ToggleSwitch keyToggle = new ToggleSwitch { Checked = _cursorModule.AllowFreeMovementKey };
+			keyToggle.CheckedChanged += (s, e) => { _cursorModule.AllowFreeMovementKey = keyToggle.Checked; key.Enabled = keyToggle.Checked; };
+			key.Enabled = keyToggle.Checked;
+			AddCard("Move freely while holding a key", null, Theme.GlyphKeyboard, new HStack(key, keyToggle) { Spacing = 16 });
+
+			ComboBox button = MakeCombo(170,
+				new[] { CommonStrings.LeftMouseButton, CommonStrings.MidMouseButton, CommonStrings.RightMouseButton, CommonStrings.X1MouseButton, CommonStrings.X2MouseButton },
+				FreeMovementButtonToString(_cursorModule.FreeMovementButton));
+			button.SelectedIndexChanged += (s, e) => _cursorModule.FreeMovementButton = FreeMovementButtonFromString(button.SelectedItem.ToString());
+			ToggleSwitch buttonToggle = new ToggleSwitch { Checked = _cursorModule.AllowFreeMovementButton };
+			buttonToggle.CheckedChanged += (s, e) => { _cursorModule.AllowFreeMovementButton = buttonToggle.Checked; button.Enabled = buttonToggle.Checked; };
+			button.Enabled = buttonToggle.Checked;
+			AddCard("Move freely while holding a mouse button", "Handy when dragging windows between screens", Theme.GlyphMouse, new HStack(button, buttonToggle) { Spacing = 16 });
+
+			ToggleSwitch primary = new ToggleSwitch { Checked = _cursorModule.PrimaryReturnUnhindered };
+			primary.CheckedChanged += (s, e) => _cursorModule.PrimaryReturnUnhindered = primary.Checked;
+			AddCard("Return freely to the primary area", "The cursor can always move back onto (and around) the primary working area", Theme.GlyphHome, primary);
+
+			AddText("Sticky and locked edges treat the primary working area as a single screen.", TextTone.Tertiary);
+		}
+
+		ComboBox MakeCombo(int width, string[] items, string selected)
+		{
+			ComboBox combo = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, FlatStyle = FlatStyle.Flat }.WithLogicalWidth(width);
+			combo.Items.AddRange(items);
+			combo.SelectedItem = selected;
+			return combo;
 		}
 
 		static string FreeMovementKeyToString(Keys key)
@@ -165,102 +202,6 @@ namespace DMT.Modules.Cursor
 
 			// else -  anything else - leave as free
 			return CursorModule.CursorType.Free;
-		}
-
-		void InitHotKeys()
-		{
-			InitHotKey(hotKeyPanelFreeCursor, _cursorModule.FreeCursorHotKeyController);
-			InitHotKey(hotKeyPanelStickyCursor, _cursorModule.StickyCursorHotKeyController);
-			InitHotKey(hotKeyPanelLockCursor, _cursorModule.LockCursorHotKeyController);
-		}
-
-		void InitHotKey(HotKeyPanel hotKeyPanel, HotKeyController hotKeyController)
-		{
-			hotKeyPanel.SetHotKeyController(hotKeyController);
-		}
-
-		void InitOtherOptions()
-		{
-			scrollBarSticky.Value = _cursorModule.MinStickyForce;
-			checkBoxControlUnhindersCursor.Checked = _cursorModule.AllowFreeMovementKey;
-			InitFreMovementKey();
-			checkBoxAllowButton.Checked = _cursorModule.AllowFreeMovementButton;
-			InitFreMovementButton();
-			checkBoxPrimaryReturnUnhindered.Checked = _cursorModule.PrimaryReturnUnhindered;
-			InitDefaultCursorMode();
-		}
-
-		void InitFreMovementKey()
-		{
-			// add available keys to the listbox
-			comboBoxFreeMovementKey.BeginUpdate();
-			comboBoxFreeMovementKey.Items.Clear();
-			comboBoxFreeMovementKey.Items.Add(CommonStrings.LControlKey);
-			comboBoxFreeMovementKey.Items.Add(CommonStrings.RControlKey);
-			comboBoxFreeMovementKey.Items.Add(CommonStrings.LShiftKey);
-			comboBoxFreeMovementKey.Items.Add(CommonStrings.RShiftKey);
-			comboBoxFreeMovementKey.SelectedItem = FreeMovementKeyToString(_cursorModule.FreeMovementKey);
-			comboBoxFreeMovementKey.EndUpdate();
-		}
-
-		void InitFreMovementButton()
-		{
-			// add available buttons to the listbox
-			comboBoxFreeMovementButton.BeginUpdate();
-			comboBoxFreeMovementButton.Items.Clear();
-			comboBoxFreeMovementButton.Items.Add(CommonStrings.LeftMouseButton);
-			comboBoxFreeMovementButton.Items.Add(CommonStrings.MidMouseButton);
-			comboBoxFreeMovementButton.Items.Add(CommonStrings.RightMouseButton);
-			comboBoxFreeMovementButton.Items.Add(CommonStrings.X1MouseButton);
-			comboBoxFreeMovementButton.Items.Add(CommonStrings.X2MouseButton);
-			comboBoxFreeMovementButton.SelectedItem = FreeMovementButtonToString(_cursorModule.FreeMovementButton);
-			comboBoxFreeMovementButton.EndUpdate();
-		}
-
-		void InitDefaultCursorMode()
-		{
-			comboBoxCursorMode.BeginUpdate();
-			comboBoxCursorMode.Items.Clear();
-			comboBoxCursorMode.Items.Add(CursorStrings.FreeCursorDescription);
-			comboBoxCursorMode.Items.Add(CursorStrings.StickyCursorDescription);
-			comboBoxCursorMode.Items.Add(CursorStrings.LockCursorDescription);
-			comboBoxCursorMode.SelectedItem = CursorModeToString(_cursorModule.DefaultCursorMode);
-			comboBoxCursorMode.EndUpdate();
-		}
-
-		private void scrollBarSticky_ValueChanged(object sender, EventArgs e)
-		{
-			_cursorModule.MinStickyForce = scrollBarSticky.Value;
-		}
-
-		private void checkBoxControlUnhindersCursor_CheckedChanged(object sender, EventArgs e)
-		{
-			_cursorModule.AllowFreeMovementKey = checkBoxControlUnhindersCursor.Checked;
-		}
-
-		private void comboBoxFreeMovementKey_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			_cursorModule.FreeMovementKey = FreeMovementKeyFromString(comboBoxFreeMovementKey.SelectedItem.ToString());
-		}
-
-		private void checkBoxAllowButton_CheckedChanged(object sender, EventArgs e)
-		{
-			_cursorModule.AllowFreeMovementButton = checkBoxAllowButton.Checked;
-		}
-
-		private void comboBoxFreeMovementButton_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			_cursorModule.FreeMovementButton = FreeMovementButtonFromString(comboBoxFreeMovementButton.SelectedItem.ToString());
-		}
-
-		private void checkBoxPrimaryReturnUnhindered_CheckedChanged(object sender, EventArgs e)
-		{
-			_cursorModule.PrimaryReturnUnhindered = checkBoxPrimaryReturnUnhindered.Checked;
-		}
-
-		private void comboBoxCursorMode_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			_cursorModule.DefaultCursorMode = CursorModeFromString(comboBoxCursorMode.SelectedItem.ToString());
 		}
 	}
 }

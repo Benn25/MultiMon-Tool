@@ -2,17 +2,17 @@
 // This file is part of Dual Monitor Tools which is a set of tools to assist
 // users with multiple monitor setups.
 // Copyright (C) 2015  Gerald Evans
-// 
+//
 // Dual Monitor Tools is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
@@ -20,29 +20,20 @@
 namespace DMT.Modules.General
 {
 	using System;
-	using System.Collections.Generic;
-	using System.ComponentModel;
-	using System.Data;
-	using System.Drawing;
-	using System.Linq;
-	using System.Text;
-	using System.Threading.Tasks;
+	using System.Diagnostics;
+	using System.IO;
 	using System.Windows.Forms;
 
 	using DMT.Library.Settings;
-	using DMT.Library.Utils;
-
+	using DMT.Library.Ui;
 	using DMT.Resources;
 
 	/// <summary>
 	/// Options panel for the general options for DMT
 	/// </summary>
-	partial class GeneralOptionsPanel : UserControl
+	class GeneralOptionsPanel : SettingsPage
 	{
 		GeneralModule _generalModule;
-
-		// used to prevent events firing when initialising the form
-		bool _initialising;
 
 		/// <summary>
 		/// Initialises a new instance of the <see cref="GeneralOptionsPanel" /> class.
@@ -51,55 +42,76 @@ namespace DMT.Modules.General
 		public GeneralOptionsPanel(GeneralModule generalModule)
 		{
 			_generalModule = generalModule;
-			_initialising = true;
 
-			InitializeComponent();
+			AddHeader("Startup");
+			AddToggle("Start with Windows", null, "", _generalModule.StartWhenWindowsStarts, v => _generalModule.StartWhenWindowsStarts = v);
+			AddToggle("Add to the desktop right-click menu", "Quick access to the most used commands", "", _generalModule.InDesktopContextMenu, v => _generalModule.InDesktopContextMenu = v);
 
-			checkBoxAutoStart.Checked = _generalModule.StartWhenWindowsStarts;
-			checkBoxContextMenu.Checked = _generalModule.InDesktopContextMenu;
+			AddHeader("About");
+			string installType = _generalModule.IsMsiInstall ? GeneralStrings.MsiInstall : GeneralStrings.PortableInstall;
+			FluentButton website = new FluentButton("Website", Theme.GlyphOpen);
+			website.Click += (s, e) => Open("https://dualmonitortool.sourceforge.net");
+			SettingsCard about = AddCard("Dual Monitor Tools " + _generalModule.Version.ToString(), installType, Theme.GlyphMonitor, website);
+			TextBlock details = new TextBlock(
+				CommonStrings.MyDescription + Environment.NewLine + Environment.NewLine +
+				AboutForm.AssemblyCopyright + Environment.NewLine +
+				CommonStrings.License, TextRole.Caption, TextTone.Secondary);
+			about.Content = details;
 
-			// "Installed version" group
-			labelVersion.Text = generalModule.Version.ToString();
-			labelInstallType.Text = generalModule.IsMsiInstall ? Resources.GeneralStrings.MsiInstall : Resources.GeneralStrings.PortableInstall;
-
-			// "File locations" group
-			textBoxExecutable.Text = CleanFileLocation(FileLocations.Instance.ExecutableFilename);
-			textBoxSettings.Text = CleanFileLocation(FileLocations.Instance.SettingsFilename);
-			textBoxMagicWords.Text = CleanFileLocation(FileLocations.Instance.MagicWordsFilename);
-			textBoxWallpaperProviders.Text = CleanFileLocation(FileLocations.Instance.WallpaperProvidersFilename);
-			textBoxLog.Text = CleanFileLocation(FileLocations.Instance.LogFilename);
-
-			// "About/Licence" group
-			labelDescription.Text = CommonStrings.MyDescription; //AboutForm.AssemblyDescription;
-			labelCopyright.Text = AboutForm.AssemblyCopyright;
-			labelLicence.Text = CommonStrings.License;
-			_initialising = false;
+			AddHeader("Files");
+			AddFile("Program", FileLocations.Instance.ExecutableFilename, "");
+			AddFile("Settings", FileLocations.Instance.SettingsFilename, Theme.GlyphSettings);
+			AddFile("Magic words", FileLocations.Instance.MagicWordsFilename, Theme.GlyphCommand);
+			AddFile("Wallpaper sources", FileLocations.Instance.WallpaperProvidersFilename, Theme.GlyphPhoto);
+			AddFile("Log", FileLocations.Instance.LogFilename, Theme.GlyphList);
 		}
 
-		string CleanFileLocation(string fileLocation)
+		void AddFile(string title, string path, string glyph)
 		{
-			// This hould only apply to the log file
-			if (string.IsNullOrEmpty(fileLocation))
+			if (string.IsNullOrEmpty(path))
 			{
-				return Resources.GeneralStrings.FileNotUsed;
+				AddCard(title, GeneralStrings.FileNotUsed, glyph);
+				return;
 			}
 
-			return fileLocation;
+			FluentButton show = new FluentButton("Show in folder", Theme.GlyphFolder) { ShowIconOnly = true };
+			show.Click += (s, e) => ShowInFolder(path);
+			new ToolTip().SetToolTip(show, "Show in folder");
+			AddCard(title, path, glyph, show);
 		}
 
-		private void checkBoxAutoStart_CheckedChanged(object sender, EventArgs e)
+		static void ShowInFolder(string path)
 		{
-			if (!_initialising)
+			try
 			{
-				_generalModule.StartWhenWindowsStarts = checkBoxAutoStart.Checked;
+				if (File.Exists(path))
+				{
+					Process.Start(new ProcessStartInfo("explorer.exe", "/select,\"" + path + "\"") { UseShellExecute = true });
+				}
+				else
+				{
+					string folder = Path.GetDirectoryName(path);
+					if (Directory.Exists(folder))
+					{
+						Open(folder);
+					}
+				}
+			}
+			catch (Exception)
+			{
+				// nothing useful we can do
 			}
 		}
 
-		private void checkBoxContextMenu_CheckedChanged(object sender, EventArgs e)
+		static void Open(string target)
 		{
-			if (!_initialising)
+			try
 			{
-				_generalModule.InDesktopContextMenu = checkBoxContextMenu.Checked;
+				Process.Start(new ProcessStartInfo(target) { UseShellExecute = true });
+			}
+			catch (Exception)
+			{
+				// nothing useful we can do
 			}
 		}
 	}
