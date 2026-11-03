@@ -63,6 +63,7 @@ namespace DMT.Modules.Launcher
 			_localEnvironment = localEnvironment;
 
 			InitializeComponent();
+			ApplyPaletteStyle();
 		}
 
 		/// <summary>

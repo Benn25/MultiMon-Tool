@@ -137,6 +137,14 @@ namespace DMT.Library.Ui
 		public static Color Stroke { get; private set; }
 		public static Color Divider { get; private set; }
 
+		/// <summary>
+		/// Background for pop ups such as menus and the launcher
+		/// </summary>
+		public static Color FlyoutBackground
+		{
+			get { return IsDark ? Color.FromArgb(0x2C, 0x2C, 0x2C) : Color.FromArgb(0xF9, 0xF9, 0xF9); }
+		}
+
 		// text
 		public static Color TextPrimary { get; private set; }
 		public static Color TextSecondary { get; private set; }

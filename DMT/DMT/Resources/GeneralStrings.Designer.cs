@@ -142,7 +142,7 @@ namespace DMT.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MSI installation.
+        ///   Looks up a localized string similar to Installed.
         /// </summary>
         internal static string MsiInstall {
             get {

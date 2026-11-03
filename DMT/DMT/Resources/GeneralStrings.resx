@@ -146,7 +146,7 @@
     <value>Unable to get latest version ({0}).  Please try again later.</value>
   </data>
   <data name="MsiInstall" xml:space="preserve">
-    <value>MSI installation</value>
+    <value>Installed</value>
   </data>
   <data name="OptionsDescription" xml:space="preserve">
     <value>Show Options</value>

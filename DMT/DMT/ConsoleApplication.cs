@@ -143,8 +143,8 @@ namespace DMT
 
 		void ShowVersion()
 		{
-			System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-			System.Diagnostics.FileVersionInfo fileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+			// (Assembly.Location is empty when published as a single file)
+			System.Diagnostics.FileVersionInfo fileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Environment.ProcessPath);
 			string version = fileVersionInfo.ProductVersion;
 			Console.WriteLine(string.Format("DMT {0}", version));
 		}

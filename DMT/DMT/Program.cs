@@ -68,6 +68,19 @@ namespace DMT
 			Application.SetColorMode(forcedDark.HasValue ? (forcedDark.Value ? SystemColorMode.Dark : SystemColorMode.Classic) : SystemColorMode.System);
 			DMT.Library.Ui.ThemeManager.Install();
 
+			// DMT is its own installer (see Setup\Installer.cs)
+			if (DMT.Setup.Installer.IsUninstallLaunch(args))
+			{
+				Application.Run(new DMT.Setup.UninstallDialog());
+				return;
+			}
+
+			if (DMT.Setup.Installer.IsSetupLaunch(args))
+			{
+				Application.Run(new DMT.Setup.InstallDialog());
+				return;
+			}
+
 			ProgramOptions programOptions = new ProgramOptions(args);
 
 			if (programOptions.CmdMode)

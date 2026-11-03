@@ -146,6 +146,12 @@ namespace DMT.Modules.General
 		{
 			get
 			{
+				// installed by DMT's own installer
+				if (string.Equals(System.Environment.ProcessPath, DMT.Setup.Installer.InstalledExe, StringComparison.OrdinalIgnoreCase))
+				{
+					return true;
+				}
+
 				object keyValue = null;
 				try
 				{
