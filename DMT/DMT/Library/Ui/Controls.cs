@@ -90,6 +90,12 @@ namespace DMT.Library.Ui
 		/// </summary>
 		public static Size MeasureNatural(Control control)
 		{
+			ComboBox combo = control as ComboBox;
+			if (combo != null)
+			{
+				return MeasureCombo(combo);
+			}
+
 			int logicalWidth;
 			if (_logicalWidths.TryGetValue(control, out logicalWidth))
 			{
@@ -105,6 +111,35 @@ namespace DMT.Library.Ui
 			}
 
 			return control.Size;
+		}
+
+		/// <summary>
+		/// A drop down is made wide enough for its longest item (up to a limit),
+		/// and its list is always wide enough to show every item in full
+		/// </summary>
+		static Size MeasureCombo(ComboBox combo)
+		{
+			int widest = 0;
+			foreach (object item in combo.Items)
+			{
+				string text = combo.GetItemText(item);
+				widest = Math.Max(widest, TextRenderer.MeasureText(text, combo.Font).Width);
+			}
+
+			// room for the arrow and the padding either side of the text
+			int needed = widest + combo.LogicalToDeviceUnits(36);
+
+			int logicalWidth;
+			int width = _logicalWidths.TryGetValue(combo, out logicalWidth) ? combo.LogicalToDeviceUnits(logicalWidth) : combo.Width;
+			width = Math.Max(width, Math.Min(needed, combo.LogicalToDeviceUnits(440)));
+
+			int dropDownWidth = Math.Max(width, needed);
+			if (combo.DropDownWidth != dropDownWidth)
+			{
+				combo.DropDownWidth = dropDownWidth;
+			}
+
+			return new Size(width, combo.Height);
 		}
 
 		static readonly Dictionary<Control, int> _logicalWidths = new Dictionary<Control, int>();
