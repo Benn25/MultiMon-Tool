@@ -204,10 +204,41 @@ namespace DMT.Library.Ui
 			BackColor = Theme.NavBackground;
 		}
 
+		bool _inLayout;
+
 		protected override void OnLayout(LayoutEventArgs levent)
 		{
+			if (_inLayout)
+			{
+				return;
+			}
+
+			_inLayout = true;
+			try
+			{
+				// showing the scroll bar changes the width, so allow a second pass
+				for (int pass = 0; pass < 2; pass++)
+				{
+					int width = ClientSize.Width;
+					Arrange(width);
+
+					// the base layout is what shows/updates the scroll bar for AutoScrollMinSize
+					base.OnLayout(levent);
+					if (ClientSize.Width == width)
+					{
+						break;
+					}
+				}
+			}
+			finally
+			{
+				_inLayout = false;
+			}
+		}
+
+		void Arrange(int width)
+		{
 			int y = AutoScrollPosition.Y + LogicalToDeviceUnits(4);
-			int width = ClientSize.Width;
 			foreach (Control child in Controls)
 			{
 				int height;
@@ -221,10 +252,16 @@ namespace DMT.Library.Ui
 				}
 
 				child.SetBounds(LogicalToDeviceUnits(4), y, width - LogicalToDeviceUnits(8), height);
-				y += height + LogicalToDeviceUnits(child is NavItem ? 2 : 2);
+				y += height + LogicalToDeviceUnits(2);
 			}
 
 			AutoScrollMinSize = new Size(0, y - AutoScrollPosition.Y + LogicalToDeviceUnits(8));
+		}
+
+		protected override void OnResize(System.EventArgs eventargs)
+		{
+			base.OnResize(eventargs);
+			PerformLayout();
 		}
 	}
 }

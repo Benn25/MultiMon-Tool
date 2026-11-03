@@ -119,7 +119,7 @@ namespace DMT.Library.Ui
 			}
 
 			bool afterHeader = page.Controls.Count > 0 && page.Controls[page.Controls.Count - 1] is TextBlock;
-			return page.Add(new HotKeyCard(controller, title, description, glyph), afterHeader ? 8 : 4);
+			return page.Add(new HotKeyCard(controller, title, description, glyph), afterHeader ? 6 : 3);
 		}
 	}
 }

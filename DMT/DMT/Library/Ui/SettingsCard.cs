@@ -188,7 +188,7 @@ namespace DMT.Library.Ui
 		int Arrange(int width, bool apply)
 		{
 			int padH = S(16);
-			int padV = S(13);
+			int padV = S(8);
 			int textLeft = TextLeft;
 			int right = width - padH;
 
@@ -212,17 +212,17 @@ namespace DMT.Library.Ui
 			int y = padV;
 			if (stacked)
 			{
-				rowHeight = textHeight + S(10) + actionSize.Height;
+				rowHeight = textHeight + S(8) + actionSize.Height;
 				if (apply)
 				{
 					_title.SetBounds(textLeft, y, textWidth, titleHeight);
 					_description.SetBounds(textLeft, y + titleHeight + S(1), textWidth, descriptionHeight);
-					_action.SetBounds(textLeft, y + textHeight + S(10), Math.Min(actionSize.Width, right - textLeft), actionSize.Height);
+					_action.SetBounds(textLeft, y + textHeight + S(8), Math.Min(actionSize.Width, right - textLeft), actionSize.Height);
 				}
 			}
 			else
 			{
-				rowHeight = Math.Max(Math.Max(textHeight, actionSize.Height), S(42));
+				rowHeight = Math.Max(Math.Max(textHeight, actionSize.Height), S(34));
 				if (apply)
 				{
 					int textTop = y + (rowHeight - textHeight) / 2;
@@ -239,7 +239,7 @@ namespace DMT.Library.Ui
 
 			if (_content != null && _content.Visible)
 			{
-				y += S(12);
+				y += S(10);
 				int contentWidth = width - padH * 2;
 				int contentHeight = UiHelper.MeasureHeight(_content, contentWidth);
 				if (apply)
@@ -368,7 +368,7 @@ namespace DMT.Library.Ui
 		public TextBlock AddHeader(string text)
 		{
 			bool first = _spacing.Count == 0;
-			return Add(new TextBlock(text, TextRole.BodyStrong), first ? 0 : 28);
+			return Add(new TextBlock(text, TextRole.BodyStrong), first ? 0 : 20);
 		}
 
 		/// <summary>
@@ -382,7 +382,7 @@ namespace DMT.Library.Ui
 		public SettingsCard AddCard(string title, string description = null, string glyph = null, Control action = null)
 		{
 			bool afterHeader = Controls.Count > 0 && Controls[Controls.Count - 1] is TextBlock;
-			return Add(new SettingsCard(title, description, glyph, action), afterHeader ? 8 : 4);
+			return Add(new SettingsCard(title, description, glyph, action), afterHeader ? 6 : 3);
 		}
 
 		/// <summary>
@@ -453,6 +453,9 @@ namespace DMT.Library.Ui
 				{
 					int clientWidth = ClientSize.Width;
 					Arrange(clientWidth);
+
+					// the base layout is what shows/updates the scroll bar for AutoScrollMinSize
+					base.OnLayout(e);
 					if (ClientSize.Width == clientWidth)
 					{
 						break;
