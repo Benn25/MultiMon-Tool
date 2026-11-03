@@ -74,6 +74,11 @@ namespace DMT.Modules.WallpaperChanger
 		{
 			_writer.WriteStartElement("provider");
 			_writer.WriteAttributeString("name", provider.ProviderName);
+			string screens = ProviderScreenShares.ToSetting(provider);
+			if (!string.IsNullOrEmpty(screens))
+			{
+				_writer.WriteAttributeString("screens", screens);
+			}
 
 			foreach (KeyValuePair<string, string> kvp in provider.Config)
 			{

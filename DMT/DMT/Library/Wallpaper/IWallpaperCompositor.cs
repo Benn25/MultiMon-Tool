@@ -55,7 +55,7 @@ namespace DMT.Library.Wallpaper
 		/// <param name="image">The image to add</param>
 		/// <param name="screenIndexes">The monitors that this image should cover</param>
 		/// <param name="fit">How to fit the image to the monitor(s)</param>
-		void AddImage(Image image, List<int> screenIndexes, StretchType.Fit fit);
+		void AddImage(Image image, List<int> screenIndexes, StretchType.Fit fit, PointF? focus = null);
 
 		/// <summary>
 		/// Moves the existing image by the specified displacement

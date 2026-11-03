@@ -210,11 +210,12 @@ namespace DMT.Library.Wallpaper
 		/// <param name="screenIndexes">Screens image is to cover</param>
 		/// <param name="fit">What to do if the image size and rectangle covering all the
 		/// active screens have different aspect ratios.</param>
-		public void AddImage(Image image, List<int> screenIndexes, StretchType.Fit fit)
+		/// <param name="focus">Point of the image to keep central when it's cropped (fractions of width/height), or null for the centre</param>
+		public void AddImage(Image image, List<int> screenIndexes, StretchType.Fit fit, PointF? focus = null)
 		{
 			SetActiveScreens(screenIndexes);
 			Debug.Assert(_activeScreens.Count > 0, "No active screens");
-			GenerateMappings(image, fit);
+			GenerateMappings(image, fit, focus);
 		}
 
 		/// <summary>
@@ -399,12 +400,16 @@ namespace DMT.Library.Wallpaper
 			return boundingRect;
 		}
 
-		void GenerateMappings(Image image, StretchType.Fit fit)
+		void GenerateMappings(Image image, StretchType.Fit fit, PointF? focus)
 		{
 			Debug.Assert(_activeScreens.Count > 0, "No active screens");
 			Rectangle boundingRect = GetBoundingRect(_activeScreens);
 
 			Rectangle virtualDestRect = GetvirtualDestRect(image, fit, boundingRect);
+			if (focus.HasValue)
+			{
+				virtualDestRect = ImageFitter.ApplyFocus(virtualDestRect, boundingRect, focus.Value);
+			}
 
 			// imageRect gets mapped to virtualDestRect
 			// now need to work out the mappings for the individual screens

@@ -2,17 +2,17 @@
 // This file is part of Dual Monitor Tools which is a set of tools to assist
 // users with multiple monitor setups.
 // Copyright (C) 2015  Gerald Evans
-// 
+//
 // Dual Monitor Tools is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
@@ -20,281 +20,131 @@
 namespace DMT.Modules.WallpaperChanger.Plugins.LocalDisk
 {
 	using System;
-	using System.Collections.Generic;
-	using System.ComponentModel;
-	using System.Data;
-	using System.Drawing;
 	using System.IO;
-	using System.Linq;
-	using System.Text;
-	using System.Threading.Tasks;
 	using System.Windows.Forms;
 
-	using DMT.Library.GuiUtils;
-	using DMT.Resources;
+	using DMT.Library.Ui;
 
 	/// <summary>
-	/// This is used to edit the configuration of a local disk provider.
+	/// Settings for a wallpaper source that takes pictures from a folder.
+	/// (Which screens it's used on is chosen for every source on the Sources page.)
 	/// </summary>
-	public partial class LocalDiskForm : Form
+	class LocalDiskForm : ContentDialog
 	{
-		/// <summary>
-		/// Initialises a new instance of the <see cref="LocalDiskForm" /> class.
-		/// </summary>
-		/// <param name="config">Configuration to be edited</param>
-		public LocalDiskForm(LocalDiskConfig config)
-		{
-			InitializeComponent();
+		const string OrderRandom = "Random";
+		const string OrderAlphabetical = "Alphabetical";
 
-			checkBoxEnabled.Checked = config.Enabled;
-			numericUpDownWeight.Value = config.Weight;
-			textBoxDescription.Text = config.Description;
-			textBoxMonitor1Directory.Text = config.Monitor1Directory;
-			textBoxMonitor2Directory.Text = config.Monitor2Directory;
-			textBoxMonitor3Directory.Text = config.Monitor3Directory;
-			textBoxMonitor4Directory.Text = config.Monitor4Directory;
-			textBoxPortraitDirectory.Text = config.PortraitDirectory;
-			textBoxDirectory.Text = config.DefaultDirectory;
-			ShowOrderType(config.Type); 
-			checkBoxRecursive.Checked = config.Recursive;
-			checkBoxRescan.Checked = config.Rescan;
-			checkBoxCycle.Checked = config.Cycle;
+		LocalDiskConfig _config;
+		TextBox _name;
+		TextBox _folder;
+		ToggleSwitch _recursive;
+		ComboBox _order;
+		ToggleSwitch _cycle;
+		SettingsCard _cycleCard;
+		ToggleSwitch _rescan;
+		ToggleSwitch _enabled;
+		NumericUpDown _weight;
+		InfoBar _errorBar;
+
+		public LocalDiskForm(LocalDiskConfig config)
+			: base("Pictures from a folder", 560)
+		{
+			_config = config;
+			StartPosition = FormStartPosition.CenterScreen;
+
+			Body.Add(new TextBlock("Name", TextRole.Caption, TextTone.Secondary));
+			_name = Body.Add(new TextBox { Text = config.Description, AccessibleName = "Name" }, 4);
+
+			Body.Add(new TextBlock("Folder", TextRole.Caption, TextTone.Secondary), 16);
+			_folder = new TextBox { Text = config.DefaultDirectory, AccessibleName = "Folder" }.WithLogicalWidth(420);
+			FluentButton browse = new FluentButton("Browse", Theme.GlyphFolder);
+			browse.Click += Browse_Click;
+			Body.Add(new HStack(_folder, browse), 4);
+
+			_recursive = new ToggleSwitch { Checked = config.Recursive };
+			Body.Add(new SettingsCard("Include subfolders", null, Theme.GlyphFolder, _recursive), 16);
+
+			_order = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, FlatStyle = FlatStyle.Flat }.WithLogicalWidth(150);
+			_order.Items.AddRange(new object[] { OrderRandom, OrderAlphabetical });
+			_order.SelectedItem = config.Type == LocalDiskConfig.OrderType.Alphabetical ? OrderAlphabetical : OrderRandom;
+			_order.SelectedIndexChanged += (s, e) => UpdateCycleCard();
+			Body.Add(new SettingsCard("Order", null, Theme.GlyphSort, _order), 4);
+
+			_cycle = new ToggleSwitch { Checked = config.Cycle };
+			_cycleCard = Body.Add(new SettingsCard("Show every picture before repeating", null, Theme.GlyphRefresh, _cycle), 4);
+
+			_rescan = new ToggleSwitch { Checked = config.Rescan };
+			Body.Add(new SettingsCard("Look for new pictures every time", "Slower with big folders, but always up to date", Theme.GlyphSearch, _rescan), 4);
+
+			_enabled = new ToggleSwitch { Checked = config.Enabled };
+			_weight = new NumericUpDown { Minimum = 0, Maximum = 100, Value = Math.Max(0, Math.Min(100, config.Weight)) }.WithLogicalWidth(70);
+			Body.Add(new SettingsCard("Use this folder", "Weight: how often it's picked compared with your other sources", Theme.GlyphPhoto, new HStack(_weight, _enabled) { Spacing = 16 }), 4);
+
+			Body.Add(new TextBlock("Choose which screens it's used on from the Sources page.", TextRole.Caption, TextTone.Tertiary), 8);
+
+			_errorBar = Body.Add(new InfoBar(Severity.Error, null, string.Empty), 8);
+			_errorBar.Visible = false;
+
+			PrimaryButton.Text = "Save";
+			PrimaryButton.Click += Save_Click;
+			UpdateCycleCard();
 		}
 
 		/// <summary>
-		/// Gets the current (possibly edited) configuration
+		/// Gets the configuration as edited by the user (call after the dialog returns OK)
 		/// </summary>
-		/// <returns>Edited configuration</returns>
 		public LocalDiskConfig GetConfig()
 		{
-			// ALT: could save original config and update it directly
 			LocalDiskConfig config = new LocalDiskConfig();
-			config.Enabled = checkBoxEnabled.Checked;
-			config.Weight = (int)numericUpDownWeight.Value;
-			config.Description = textBoxDescription.Text;
-			config.Monitor1Directory = textBoxMonitor1Directory.Text;
-			config.Monitor2Directory = textBoxMonitor2Directory.Text;
-			config.Monitor3Directory = textBoxMonitor3Directory.Text;
-			config.Monitor4Directory = textBoxMonitor4Directory.Text;
-			config.PortraitDirectory = textBoxPortraitDirectory.Text;
-			config.DefaultDirectory = textBoxDirectory.Text;
-			config.Type = GetOrderType();
-			config.Recursive = checkBoxRecursive.Checked;
-			config.Rescan = checkBoxRescan.Checked;
-			config.Cycle = checkBoxCycle.Checked;
-
+			config.Enabled = _enabled.Checked;
+			config.Weight = (int)_weight.Value;
+			config.Description = _name.Text;
+			config.DefaultDirectory = _folder.Text.Trim();
+			config.Type = (string)_order.SelectedItem == OrderAlphabetical ? LocalDiskConfig.OrderType.Alphabetical : LocalDiskConfig.OrderType.Random;
+			config.Recursive = _recursive.Checked;
+			config.Rescan = _rescan.Checked;
+			config.Cycle = _cycle.Checked;
+			config.RandomStart = _config.RandomStart;
 			return config;
 		}
 
-		private void buttonBrowseMonitor1_Click(object sender, EventArgs e)
+		void UpdateCycleCard()
 		{
-			string sel = SelectFolder(textBoxMonitor1Directory.Text);
-			if (sel != null)
+			// cycling only applies to random order
+			_cycleCard.Visible = (string)_order.SelectedItem == OrderRandom;
+			if (IsHandleCreated)
 			{
-				textBoxMonitor1Directory.Text = sel;
+				FitToContent();
 			}
 		}
 
-		private void buttonBrowseMonitor2_Click(object sender, EventArgs e)
+		void Browse_Click(object sender, EventArgs e)
 		{
-			string sel = SelectFolder(textBoxMonitor2Directory.Text);
-			if (sel != null)
+			using (FolderBrowserDialog dlg = new FolderBrowserDialog { SelectedPath = _folder.Text, Description = "Choose the folder with your pictures", UseDescriptionForTitle = true })
 			{
-				textBoxMonitor2Directory.Text = sel;
+				if (dlg.ShowDialog(this) == DialogResult.OK)
+				{
+					_folder.Text = dlg.SelectedPath;
+				}
 			}
 		}
 
-		private void buttonBrowseMonitor3_Click(object sender, EventArgs e)
+		void Save_Click(object sender, EventArgs e)
 		{
-			string sel = SelectFolder(textBoxMonitor3Directory.Text);
-			if (sel != null)
+			if (!Directory.Exists(_folder.Text.Trim()))
 			{
-				textBoxMonitor3Directory.Text = sel;
+				_errorBar.Text = "That folder doesn't exist.";
+				if (!_errorBar.Visible)
+				{
+					_errorBar.Visible = true;
+					FitToContent();
+				}
+
+				return;
 			}
-		}
-
-		private void buttonBrowseMonitor4_Click(object sender, EventArgs e)
-		{
-			string sel = SelectFolder(textBoxMonitor4Directory.Text);
-			if (sel != null)
-			{
-				textBoxMonitor4Directory.Text = sel;
-			}
-		}
-
-		private void buttonBrowsePortrait_Click(object sender, EventArgs e)
-		{
-			string sel = SelectFolder(textBoxPortraitDirectory.Text);
-			if (sel != null)
-			{
-				textBoxPortraitDirectory.Text = sel;
-			}
-		}
-
-		private void buttonBrowse_Click(object sender, EventArgs e)
-		{
-			string sel = SelectFolder(textBoxDirectory.Text);
-			if (sel != null)
-			{
-				textBoxDirectory.Text = sel;
-			}
-		}
-
-		private void buttonAbout_Click(object sender, EventArgs e)
-		{
-		}
-
-		private void buttonOK_Click(object sender, EventArgs e)
-		{
-			// TODO: validation
 
 			DialogResult = DialogResult.OK;
 			Close();
-		}
-
-		private void buttonCancel_Click(object sender, EventArgs e)
-		{
-		}
-
-		string SelectFolder(string initialFolder)
-		{
-			string ret = null;
-			bool allowFileSelection = checkBoxAllowFileBrowse.Checked;
-
-			if (allowFileSelection)
-			{
-#if _COMBINED_FILE_FOLDER_SELECTION
-				// This does work, but the UI can be confusing so not using it ATM
-
-				// use OpenFileDialog to select a file or a folder
-				// This involves a well known trick by specifying a filename that doesn't exist
-				// and turning off file exists checks.
-				// When this non-existant file is returned back to us, 
-				// we just take the directory that it is in.
-				OpenFileDialog dlg = new OpenFileDialog();
-				dlg.CheckPathExists = true;
-				dlg.CheckFileExists = false;
-				dlg.ValidateNames = false;
-				dlg.InitialDirectory = initialFolder;
-				string folderMarker = "Select this folder";
-				dlg.FileName = folderMarker;
-				if (dlg.ShowDialog(this) == DialogResult.OK)
-				{
-					if (File.Exists(dlg.FileName))
-					{
-						// user has selected a file
-						ret = dlg.FileName;
-					}
-					else if (Directory.Exists(dlg.FileName))
-					{
-						// user has selected a directory (probably by typing in its name)
-						ret = dlg.FileName;
-					}
-					else
-					{
-						// we use the base directory
-						ret = Path.GetDirectoryName(dlg.FileName);
-					}
-				}
-#else
-				// use OpenFileDialog to select a file
-				OpenFileDialog dlg = new OpenFileDialog();
-				FileSelectionHelper.SetInitialFileNameInDialog(dlg, initialFolder);
-				dlg.Filter = WallpaperStrings.OpenImageFilter;
-				if (dlg.ShowDialog(this) == DialogResult.OK)
-				{
-					ret = dlg.FileName;
-				}
-#endif
-			}
-			else
-			{
-				// use FolderBrowserDialog to select a folder
-				FolderBrowserDialog dlg = new FolderBrowserDialog();
-				dlg.RootFolder = Environment.SpecialFolder.Desktop;
-				dlg.SelectedPath = initialFolder;
-				if (dlg.ShowDialog(this) == DialogResult.OK)
-				{
-					ret = dlg.SelectedPath;
-				}
-			}
-
-			return ret;
-		}
-
-		private void checkBoxRescan_CheckedChanged(object sender, EventArgs e)
-		{
-			if (checkBoxRescan.Checked)
-			{
-				checkBoxCycle.Checked = false;
-			}
-		}
-
-		private void checkBoxCycle_CheckedChanged(object sender, EventArgs e)
-		{
-			if (checkBoxCycle.Checked)
-			{
-				checkBoxRescan.Checked = false;
-			}
-		}
-
-		void ShowOrderType(LocalDiskConfig.OrderType orderType)
-		{
-			bool showRescanCheckbox = false;
-			bool showCycleThroughAll = false;
-
-			switch (orderType)
-			{
-				case LocalDiskConfig.OrderType.Random:
-					radioButtonOrderRandom.Checked = true;
-					showRescanCheckbox = true;
-					showCycleThroughAll = true;
-					break;
-
-				case LocalDiskConfig.OrderType.Alphabetical:
-					radioButtonOrderAlphabetical.Checked = true;
-					break;
-			}
-
-			ShowCheckBox(checkBoxRescan, showRescanCheckbox);
-			ShowCheckBox(checkBoxCycle, showCycleThroughAll);
-		}
-
-		LocalDiskConfig.OrderType GetOrderType()
-		{
-			if (radioButtonOrderRandom.Checked)
-			{
-				return LocalDiskConfig.OrderType.Random;
-			}
-			else if (radioButtonOrderAlphabetical.Checked)
-			{
-				return LocalDiskConfig.OrderType.Alphabetical;
-			}
-			else
-			{
-				// shouldn't get here, but jic
-				return LocalDiskConfig.OrderType.Random;
-			}
-		}
-
-		void ShowCheckBox(CheckBox checkBox, bool show)
-		{
-			if (show)
-			{
-				checkBox.Visible = true;
-				checkBox.Enabled = true;
-			}
-			else
-			{
-				checkBox.Enabled = false;
-				checkBox.Visible = false;
-			}
-		}
-
-		private void OnOrderRadioChanged(object sender, EventArgs e)
-		{
-			LocalDiskConfig.OrderType orderType = GetOrderType();
-			ShowOrderType(orderType);
 		}
 	}
 }

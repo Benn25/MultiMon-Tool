@@ -40,11 +40,6 @@ namespace DMT.Modules.WallpaperChanger.Plugins.LocalDisk
 		LocalDiskConfig _config;
 		ILogger _logger;
 
-		CandidateFilenames _monitor1Cache = new CandidateFilenames();
-		CandidateFilenames _monitor2Cache = new CandidateFilenames();
-		CandidateFilenames _monitor3Cache = new CandidateFilenames();
-		CandidateFilenames _monitor4Cache = new CandidateFilenames();
-		CandidateFilenames _portraitCache = new CandidateFilenames();
 		CandidateFilenames _defaultCache = new CandidateFilenames();
 
 		/// <summary>
@@ -175,12 +170,7 @@ namespace DMT.Modules.WallpaperChanger.Plugins.LocalDisk
 			// LocalDiskConfig.OrderType.Alphabetical
 			options.RandomStart = _config.RandomStart;
 
-			// make sure caches reflect current settings
-			_monitor1Cache.SetDirectory(_config.Monitor1Directory, options);
-			_monitor2Cache.SetDirectory(_config.Monitor2Directory, options);
-			_monitor3Cache.SetDirectory(_config.Monitor3Directory, options);
-			_monitor4Cache.SetDirectory(_config.Monitor4Directory, options);
-			_portraitCache.SetDirectory(_config.PortraitDirectory, options);
+			// make sure the cache reflects the current settings
 			_defaultCache.SetDirectory(_config.DefaultDirectory, options);
 
 			if (_config.Rescan)
@@ -233,64 +223,16 @@ namespace DMT.Modules.WallpaperChanger.Plugins.LocalDisk
 
 		void ClearAllCaches()
 		{
-			_monitor1Cache.ClearCache();
-			_monitor2Cache.ClearCache();
-			_monitor3Cache.ClearCache();
-			_monitor4Cache.ClearCache();
-			_portraitCache.ClearCache();
 			_defaultCache.ClearCache();
 		}
 
+		/// <remarks>
+		/// Choosing which screens a source is used on is now done for every source
+		/// (see ProviderScreenShares), so there's just the one folder here
+		/// </remarks>
 		string GetNextImageFilename(Size optimumSize, int screenIndex)
 		{
-			string ret = null;
-
-			// check for image for a particular monitor
-			// Screen Index is zero based, 
-			// and will be -1 if want an image to cover multiple monitors 
-			//
-			// NOTE: Will also be -1 if only a single monitor,
-			// but the'Multi Monitor' option is one that could imply that
-			// the image is needed for multiple monitors
-			if (screenIndex >= 0)
-			{
-				switch (screenIndex)
-				{
-					case 0:
-						ret = _monitor1Cache.GetNextImageFilename();
-						break;
-					case 1:
-						ret = _monitor2Cache.GetNextImageFilename();
-						break;
-					case 2:
-						ret = _monitor3Cache.GetNextImageFilename();
-						break;
-					case 3:
-						ret = _monitor4Cache.GetNextImageFilename();
-						break;
-					default:
-						// leave ret as null
-						break;
-				}
-			}
-
-			// check for portrait
-			if (ret == null)
-			{
-				if (optimumSize.Height > optimumSize.Width)
-				{
-					// ideally want a portrait image
-					ret = _portraitCache.GetNextImageFilename();
-				}
-			}
-
-			// landscape / default
-			if (ret == null)
-			{
-				ret = _defaultCache.GetNextImageFilename();
-			}
-
-			return ret;
+			return _defaultCache.GetNextImageFilename();
 		}
 	}
 }

@@ -44,7 +44,6 @@ namespace DMT.Modules.WallpaperChanger.Plugins.List
 		TextBox _name;
 		ThumbnailGrid _grid;
 		TextBlock _count;
-		FluentButton _removeButton;
 		ToggleSwitch _subfolders;
 		ToggleSwitch _enabled;
 		NumericUpDown _weight;
@@ -68,19 +67,20 @@ namespace DMT.Modules.WallpaperChanger.Plugins.List
 			addPictures.Click += AddPictures_Click;
 			FluentButton addFolder = new FluentButton("Add a folder", Theme.GlyphFolder);
 			addFolder.Click += AddFolder_Click;
-			_removeButton = new FluentButton("Remove", Theme.GlyphDelete);
-			_removeButton.Click += (s, e) => _grid.RemoveSelected();
 			FluentButton removeMissing = new FluentButton("Remove missing", Theme.GlyphClear, ButtonKind.Subtle);
 			removeMissing.Click += (s, e) => _grid.RemoveMissing();
-			Body.Add(new HStack(addPictures, addFolder, _removeButton, removeMissing), 16);
+			Body.Add(new HStack(addPictures, addFolder, removeMissing), 16);
 
 			_grid = new ThumbnailGrid();
 			_grid.ItemsChanged += (s, e) => UpdateCount();
-			_grid.SelectionChanged += (s, e) => _removeButton.Enabled = _grid.SelectedCount > 0;
 			CardFrame frame = new CardFrame(_grid) { Height = LogicalToDeviceUnits(330) };
 			Body.Add(frame, 8);
 
 			_count = Body.Add(new TextBlock(string.Empty, TextRole.Caption, TextTone.Secondary), 6);
+			Body.Add(new TextBlock(
+				"Point at a picture and click its × to remove it. When a picture is cropped to fill a screen, " +
+				"right-drag across it to choose the part that stays in view (a right-click puts it back in the middle). " +
+				"Drag pictures to change their order.", TextRole.Caption, TextTone.Tertiary), 2);
 
 			_subfolders = new ToggleSwitch { Checked = true };
 			_subfolders.CheckedChanged += (s, e) => _grid.IncludeSubfolders = _subfolders.Checked;
@@ -112,7 +112,6 @@ namespace DMT.Modules.WallpaperChanger.Plugins.List
 			LoadList(_listFnm);
 			UpdatePersistCard();
 			UpdateFileCard();
-			_removeButton.Enabled = false;
 		}
 
 		/// <summary>
@@ -132,19 +131,12 @@ namespace DMT.Modules.WallpaperChanger.Plugins.List
 
 		void LoadList(string listFnm)
 		{
-			List<string> pictures = new List<string>();
+			List<PictureListEntry> pictures = new List<PictureListEntry>();
 			if (!string.IsNullOrEmpty(listFnm) && File.Exists(listFnm))
 			{
 				try
 				{
-					foreach (string line in File.ReadAllLines(listFnm))
-					{
-						string cleaned = line.Trim();
-						if (cleaned.Length > 0 && cleaned[0] != '#')
-						{
-							pictures.Add(cleaned);
-						}
-					}
+					pictures = PictureListFile.Read(listFnm);
 				}
 				catch (Exception ex)
 				{
@@ -152,7 +144,12 @@ namespace DMT.Modules.WallpaperChanger.Plugins.List
 				}
 			}
 
-			_grid.SetItems(pictures);
+			_grid.SetItems(pictures.Select(p => p.Path));
+			foreach (PictureListEntry picture in pictures)
+			{
+				_grid.SetFocus(picture.Path, picture.Focus);
+			}
+
 			UpdateCount();
 		}
 
@@ -242,9 +239,7 @@ namespace DMT.Modules.WallpaperChanger.Plugins.List
 				}
 
 				Directory.CreateDirectory(Path.GetDirectoryName(_listFnm));
-				List<string> lines = new List<string> { "# Picture list for Dual Monitor Tools (one picture per line)" };
-				lines.AddRange(_grid.Items);
-				File.WriteAllLines(_listFnm, lines);
+				PictureListFile.Write(_listFnm, _grid.Items.Select(path => new PictureListEntry(path, _grid.GetFocus(path))));
 			}
 			catch (Exception ex)
 			{

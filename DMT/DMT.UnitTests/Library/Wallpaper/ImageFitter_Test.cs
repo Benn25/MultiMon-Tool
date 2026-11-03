@@ -363,5 +363,41 @@ namespace DMT.UnitTests.Library.Wallpaper
 			Assert.AreEqual(expectedRect, actual);
 		}
 
+		// a landscape image filling a portrait monitor (4000x2000 image cropped to a 1000x2000 screen)
+		static Rectangle PortraitRect = new Rectangle(0, 0, 1000, 2000);
+		static Rectangle LandscapeFillRect = new Rectangle(-1500, 0, 4000, 2000);
+
+		static object[] FocusCases =
+		{
+			new object[] { 0.5f, new Rectangle(-1500, 0, 4000, 2000) },	// middle is unchanged
+			new object[] { 0.25f, new Rectangle(-500, 0, 4000, 2000) },
+			new object[] { 0.75f, new Rectangle(-2500, 0, 4000, 2000) },
+			new object[] { 0f, new Rectangle(0, 0, 4000, 2000) },		// can't move past the left edge
+			new object[] { 1f, new Rectangle(-3000, 0, 4000, 2000) },	// or the right edge
+		};
+
+		[TestCaseSource("FocusCases")]
+		public void FocusMovesCroppedImage(float focusX, Rectangle expectedRect)
+		{
+			Rectangle actual = ImageFitter.ApplyFocus(LandscapeFillRect, PortraitRect, new PointF(focusX, 0.5f));
+			Assert.AreEqual(expectedRect, actual);
+		}
+
+		[Test]
+		public void FocusWorksOnMonitorNotAtZeroZero()
+		{
+			Rectangle target = new Rectangle(2000, 1000, 1000, 2000);
+			Rectangle virtualDest = new Rectangle(500, 1000, 4000, 2000);
+			Rectangle actual = ImageFitter.ApplyFocus(virtualDest, target, new PointF(0.25f, 0.5f));
+			Assert.AreEqual(new Rectangle(1500, 1000, 4000, 2000), actual);
+		}
+
+		[Test]
+		public void FocusIgnoredWhenImageNotCropped()
+		{
+			Rectangle virtualDest = new Rectangle(500, 300, 1000, 400);
+			Rectangle actual = ImageFitter.ApplyFocus(virtualDest, Screen1Rect, new PointF(0f, 1f));
+			Assert.AreEqual(virtualDest, actual);
+		}
 	}
 }

@@ -92,16 +92,14 @@ namespace DMT.Modules.WallpaperChanger
 		public ProviderImage GetRandomImage(Size optimumSize, int screenIndex)
 		{
 			// first choose a provider
-			int totalWeight = 0;
-			foreach (IImageProvider provider in _providers)
+			// (each source can be used more or less on each screen)
+			bool useScreenShares = screenIndex >= 0;
+			int totalWeight = TotalWeight(screenIndex, useScreenShares);
+			if (totalWeight == 0 && useScreenShares)
 			{
-				int weight = GetEffectiveWeight(provider);
-
-				// ignore zero and negative weights
-				if (weight > 0)
-				{
-					totalWeight += weight;
-				}
+				// no source is wanted on this screen, so rather than leave it blank, ignore the screen shares
+				useScreenShares = false;
+				totalWeight = TotalWeight(screenIndex, false);
 			}
 
 			if (totalWeight > 0)
@@ -110,7 +108,7 @@ namespace DMT.Modules.WallpaperChanger
 
 				foreach (IImageProvider provider in _providers)
 				{
-					int weight = GetEffectiveWeight(provider);
+					int weight = GetEffectiveWeight(provider, screenIndex, useScreenShares);
 
 					// ignore zero and negative weights
 					if (weight > 0)
@@ -130,17 +128,34 @@ namespace DMT.Modules.WallpaperChanger
 			return null;
 		}
 
-		int GetEffectiveWeight(IImageProvider provider)
+		int TotalWeight(int screenIndex, bool useScreenShares)
 		{
-			if (provider.Enabled)
+			int totalWeight = 0;
+			foreach (IImageProvider provider in _providers)
 			{
-				return provider.Weight;
+				int weight = GetEffectiveWeight(provider, screenIndex, useScreenShares);
+
+				// ignore zero and negative weights
+				if (weight > 0)
+				{
+					totalWeight += weight;
+				}
 			}
-			else
+
+			return totalWeight;
+		}
+
+		int GetEffectiveWeight(IImageProvider provider, int screenIndex, bool useScreenShares)
+		{
+			if (!provider.Enabled)
 			{
 				// it is disabled, so ignore the weight
 				return 0;
 			}
+
+			// weights are scaled by 100 so the percentage shares keep their precision
+			int share = useScreenShares ? ProviderScreenShares.Get(provider, screenIndex) : 100;
+			return provider.Weight * share;
 		}
 
 		void LoadProviders()

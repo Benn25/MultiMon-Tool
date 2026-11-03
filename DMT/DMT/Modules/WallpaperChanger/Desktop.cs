@@ -137,7 +137,7 @@ namespace DMT.Modules.WallpaperChanger
 					ProviderImage sourceImage = imageFetcher.GetRandomImageForScreen(compositor, i);
 					if (sourceImage != null && sourceImage.Image != null)
 					{
-						compositor.AddImage(sourceImage.Image, ScreenToList(i), stretchType.Type);
+						compositor.AddImage(sourceImage.Image, ScreenToList(i), stretchType.Type, sourceImage.Focus);
 						//RememberImage(sourceImage, i);
 						_usedImages.AddCandidateImage(sourceImage, i);
 					}
@@ -167,7 +167,7 @@ namespace DMT.Modules.WallpaperChanger
 					// add image to each monitor
 					for (int i = 0; i < compositor.AllScreens.Count; i++)
 					{
-						compositor.AddImage(sourceImage.Image, ScreenToList(i), stretchType.Type);
+						compositor.AddImage(sourceImage.Image, ScreenToList(i), stretchType.Type, sourceImage.Focus);
 					}
 
 					//RememberImage(sourceImage, 0);
@@ -182,7 +182,7 @@ namespace DMT.Modules.WallpaperChanger
 				if (sourceImage != null && sourceImage.Image != null)
 				{
 					selectedScreens = GetAllScreenIndexes(compositor);
-					compositor.AddImage(sourceImage.Image, selectedScreens, stretchType.Type); 
+					compositor.AddImage(sourceImage.Image, selectedScreens, stretchType.Type, sourceImage.Focus);
 					//RememberImage(sourceImage, 0);
 					_usedImages.AddCandidateImage(sourceImage, 0);
 				}
@@ -267,7 +267,7 @@ namespace DMT.Modules.WallpaperChanger
 					// Should always have an image, but jic
 					if (providerImage != null)
 					{
-						compositor.AddImage(providerImage.Image, ScreenToList(i), stretchType.Type);
+						compositor.AddImage(providerImage.Image, ScreenToList(i), stretchType.Type, providerImage.Focus);
 					}
 				}
 

@@ -52,6 +52,13 @@ namespace DMT.Library.WallpaperPlugin
 		public Image Image { get; protected set; }
 
 		/// <summary>
+		/// Gets or sets the point of the image (as fractions of its width and height)
+		/// that should be kept in the middle of the screen when the image has to be cropped to fill it.
+		/// Null for the centre of the image.
+		/// </summary>
+		public PointF? Focus { get; set; }
+
+		/// <summary>
 		/// Gets or sets the name of the provider
 		/// </summary>
 		public string Provider { get; set; }

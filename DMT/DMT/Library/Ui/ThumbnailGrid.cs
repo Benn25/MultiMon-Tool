@@ -48,6 +48,12 @@ namespace DMT.Library.Ui
 		int _dropIndex = -1;
 		Point _mouseDownPoint;
 		bool _mouseDownOnSelected;
+		bool _hoverClose;
+
+		// the point to keep central when a picture is cropped, along its longer side (0 to 1)
+		readonly Dictionary<string, float> _focus = new Dictionary<string, float>(StringComparer.OrdinalIgnoreCase);
+		int _focusDragIndex = -1;
+		bool _focusDragMoved;
 
 		// thumbnails are made on a background thread
 		readonly Dictionary<string, Image> _thumbnails = new Dictionary<string, Image>(StringComparer.OrdinalIgnoreCase);
@@ -101,6 +107,50 @@ namespace DMT.Library.Ui
 		{
 			BackColor = Theme.Surface;
 			Invalidate();
+		}
+
+		/// <summary>
+		/// Gets the focus point (along the picture's longer side, 0 to 1), or null for the middle
+		/// </summary>
+		public float? GetFocus(string path)
+		{
+			float focus;
+			return _focus.TryGetValue(path, out focus) ? focus : (float?)null;
+		}
+
+		public void SetFocus(string path, float? focus)
+		{
+			if (focus.HasValue)
+			{
+				_focus[path] = Math.Max(0f, Math.Min(1f, focus.Value));
+			}
+			else
+			{
+				_focus.Remove(path);
+			}
+
+			Invalidate();
+		}
+
+		/// <summary>
+		/// Removes a single picture
+		/// </summary>
+		public void RemoveAt(int index)
+		{
+			if (index < 0 || index >= _items.Count)
+			{
+				return;
+			}
+
+			_items.RemoveAt(index);
+			_selected = new HashSet<int>(_selected.Where(i => i != index).Select(i => i > index ? i - 1 : i));
+			if (_focusIndex >= _items.Count)
+			{
+				_focusIndex = _items.Count - 1;
+			}
+
+			_hoverIndex = -1;
+			ItemsHaveChanged();
 		}
 
 		/// <summary>
@@ -382,21 +432,24 @@ namespace DMT.Library.Ui
 				}
 
 				string path = _items[i];
-				Rectangle thumbArea = new Rectangle(tile.Left + LogicalToDeviceUnits(6), tile.Top + LogicalToDeviceUnits(6), ThumbWidth, ThumbHeight);
+				Rectangle thumbArea = ThumbArea(tile);
 				Image thumb = GetThumbnail(path);
 				if (thumb != null)
 				{
 					// centre the thumbnail in its area, with rounded corners
-					Rectangle dest = new Rectangle(
-						thumbArea.Left + (thumbArea.Width - thumb.Width) / 2,
-						thumbArea.Top + (thumbArea.Height - thumb.Height) / 2,
-						thumb.Width, thumb.Height);
+					Rectangle dest = ThumbDest(thumbArea, thumb);
 					g.SmoothingMode = SmoothingMode.AntiAlias;
 					using (GraphicsPath clip = Theme.RoundedRect(dest, LogicalToDeviceUnits(4)))
 					{
 						g.SetClip(clip);
 						g.DrawImage(thumb, dest);
 						g.ResetClip();
+					}
+
+					float focus;
+					if (_focus.TryGetValue(path, out focus))
+					{
+						DrawFocus(g, dest, focus);
 					}
 				}
 				else
@@ -425,6 +478,15 @@ namespace DMT.Library.Ui
 				TextRenderer.DrawText(g, caption, captionFont, captionRect, IsFailed(path) ? Theme.TextTertiary : Theme.TextPrimary,
 					TextFormatFlags.HorizontalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
 
+				if (i == _hoverIndex && _focusDragIndex < 0)
+				{
+					// remove button, only shown on the picture under the mouse
+					Rectangle close = CloseRect(tile);
+					Theme.FillRounded(g, close, close.Width / 2, _hoverClose ? Color.FromArgb(0xC4, 0x2B, 0x1C) : Color.FromArgb(200, 32, 32, 32));
+					TextRenderer.DrawText(g, Theme.GlyphClear, Theme.GetFont(TextRole.IconSmall, DeviceDpi), close, Color.White,
+						TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
+				}
+
 				if (Focused && ShowFocusCues && i == _focusIndex)
 				{
 					Rectangle focus = Rectangle.Inflate(tile, -1, -1);
@@ -447,6 +509,75 @@ namespace DMT.Library.Ui
 					g.DrawLine(pen, x, tile.Top, x, tile.Bottom);
 				}
 			}
+		}
+
+		Rectangle ThumbArea(Rectangle tile)
+		{
+			return new Rectangle(tile.Left + LogicalToDeviceUnits(6), tile.Top + LogicalToDeviceUnits(6), ThumbWidth, ThumbHeight);
+		}
+
+		static Rectangle ThumbDest(Rectangle thumbArea, Image thumb)
+		{
+			return new Rectangle(
+				thumbArea.Left + (thumbArea.Width - thumb.Width) / 2,
+				thumbArea.Top + (thumbArea.Height - thumb.Height) / 2,
+				thumb.Width, thumb.Height);
+		}
+
+		Rectangle CloseRect(Rectangle tile)
+		{
+			int size = LogicalToDeviceUnits(22);
+			return new Rectangle(tile.Right - size - LogicalToDeviceUnits(2), tile.Top + LogicalToDeviceUnits(2), size, size);
+		}
+
+		/// <summary>
+		/// Shows the focus as a line across the picture (with a handle in the middle)
+		/// </summary>
+		void DrawFocus(Graphics g, Rectangle dest, float focus)
+		{
+			bool landscape = dest.Width >= dest.Height;
+			g.SmoothingMode = SmoothingMode.AntiAlias;
+			int handle = LogicalToDeviceUnits(10);
+			using (Pen shadow = new Pen(Color.FromArgb(140, 0, 0, 0), LogicalToDeviceUnits(4)))
+			using (Pen pen = new Pen(Theme.Accent, LogicalToDeviceUnits(2)))
+			{
+				if (landscape)
+				{
+					int x = dest.Left + (int)Math.Round(focus * dest.Width);
+					g.DrawLine(shadow, x, dest.Top, x, dest.Bottom);
+					g.DrawLine(pen, x, dest.Top, x, dest.Bottom);
+					Theme.FillRounded(g, new Rectangle(x - handle / 2, dest.Top + dest.Height / 2 - handle / 2, handle, handle), handle / 2, Theme.Accent, Color.White);
+				}
+				else
+				{
+					int y = dest.Top + (int)Math.Round(focus * dest.Height);
+					g.DrawLine(shadow, dest.Left, y, dest.Right, y);
+					g.DrawLine(pen, dest.Left, y, dest.Right, y);
+					Theme.FillRounded(g, new Rectangle(dest.Left + dest.Width / 2 - handle / 2, y - handle / 2, handle, handle), handle / 2, Theme.Accent, Color.White);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Works out the focus from a point over a picture's thumbnail
+		/// </summary>
+		float? FocusFromPoint(int index, Point point)
+		{
+			Image thumb;
+			lock (_queueLock)
+			{
+				_thumbnails.TryGetValue(_items[index], out thumb);
+			}
+
+			if (thumb == null)
+			{
+				return null;
+			}
+
+			Rectangle dest = ThumbDest(ThumbArea(TileRect(index)), thumb);
+			bool landscape = dest.Width >= dest.Height;
+			float focus = landscape ? (point.X - dest.Left) / (float)dest.Width : (point.Y - dest.Top) / (float)dest.Height;
+			return Math.Max(0f, Math.Min(1f, focus));
 		}
 
 		bool IsFailed(string path)
@@ -581,10 +712,30 @@ namespace DMT.Library.Ui
 		protected override void OnMouseMove(MouseEventArgs e)
 		{
 			base.OnMouseMove(e);
+
+			// right drag sets the focus of the picture
+			if (_focusDragIndex >= 0 && e.Button == MouseButtons.Right)
+			{
+				Size dragSize = SystemInformation.DragSize;
+				if (_focusDragMoved || Math.Abs(e.X - _mouseDownPoint.X) > dragSize.Width || Math.Abs(e.Y - _mouseDownPoint.Y) > dragSize.Height)
+				{
+					_focusDragMoved = true;
+					float? focus = FocusFromPoint(_focusDragIndex, e.Location);
+					if (focus.HasValue)
+					{
+						SetFocus(_items[_focusDragIndex], focus);
+					}
+				}
+
+				return;
+			}
+
 			int index = IndexAt(e.Location);
-			if (index != _hoverIndex)
+			bool hoverClose = index >= 0 && CloseRect(TileRect(index)).Contains(e.Location);
+			if (index != _hoverIndex || hoverClose != _hoverClose)
 			{
 				_hoverIndex = index;
+				_hoverClose = hoverClose;
 				Invalidate();
 			}
 
@@ -607,6 +758,7 @@ namespace DMT.Library.Ui
 		{
 			base.OnMouseLeave(e);
 			_hoverIndex = -1;
+			_hoverClose = false;
 			Invalidate();
 		}
 
@@ -616,6 +768,20 @@ namespace DMT.Library.Ui
 			Focus();
 			_mouseDownPoint = e.Location;
 			int index = IndexAt(e.Location);
+
+			if (e.Button == MouseButtons.Right)
+			{
+				_focusDragIndex = index;
+				_focusDragMoved = false;
+				Capture = index >= 0;
+				return;
+			}
+
+			if (e.Button == MouseButtons.Left && index >= 0 && CloseRect(TileRect(index)).Contains(e.Location))
+			{
+				RemoveAt(index);
+				return;
+			}
 			_mouseDownOnSelected = index >= 0 && _selected.Contains(index) && ModifierKeys == Keys.None;
 
 			if (index < 0)
@@ -643,6 +809,24 @@ namespace DMT.Library.Ui
 		protected override void OnMouseUp(MouseEventArgs e)
 		{
 			base.OnMouseUp(e);
+			if (e.Button == MouseButtons.Right && _focusDragIndex >= 0)
+			{
+				if (!_focusDragMoved)
+				{
+					// a right click without dragging puts the focus back in the middle
+					SetFocus(_items[_focusDragIndex], null);
+				}
+
+				_focusDragIndex = -1;
+				Capture = false;
+				if (ItemsChanged != null)
+				{
+					ItemsChanged(this, EventArgs.Empty);
+				}
+
+				return;
+			}
+
 			if (_mouseDownOnSelected)
 			{
 				// a click (not a drag) on a selected picture just selects it

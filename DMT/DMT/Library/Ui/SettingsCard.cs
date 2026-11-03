@@ -357,6 +357,14 @@ namespace DMT.Library.Ui
 		public T Add<T>(T control, int spaceBefore = 4) where T : Control
 		{
 			_spacing[control] = spaceBefore;
+
+			// the page sizes its children itself, and the standard layout would otherwise shrink an auto-sized
+			// block of text to a single line whenever its text changes
+			if (control is IHeightForWidth)
+			{
+				control.AutoSize = false;
+			}
+
 			Controls.Add(control);
 			control.VisibleChanged += (s, e) => PerformLayout();
 			return control;

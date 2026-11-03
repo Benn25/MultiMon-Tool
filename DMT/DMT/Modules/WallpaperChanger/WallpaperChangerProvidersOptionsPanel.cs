@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
+using DMT.Library.Environment;
 using DMT.Library.Ui;
 using DMT.Library.WallpaperPlugin;
 using DMT.Resources;
@@ -36,6 +37,14 @@ namespace DMT.Modules.WallpaperChanger
 		DataGridView _grid;
 		FluentButton _editButton;
 		FluentButton _deleteButton;
+		DataGridViewTextBoxColumn _screensColumn;
+		TextBlock _screensHeader;
+		TextBlock _screensText;
+		List<Slider> _screenSliders = new List<Slider>();
+		List<SettingsCard> _screenCards = new List<SettingsCard>();
+		IImageProvider _selectedProvider;
+		bool _loadingShares;
+		bool _shareChanged;
 
 		public WallpaperChangerProvidersOptionsPanel(WallpaperChangerModule wallpaperChangerModule)
 		{
@@ -65,6 +74,9 @@ namespace DMT.Modules.WallpaperChanger
 			_grid.Columns.Add(new DataGridViewImageColumn { DataPropertyName = "ProviderImage", HeaderText = string.Empty, Width = LogicalToDeviceUnits(48), ReadOnly = true });
 			_grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "ProviderName", HeaderText = "Type", Width = LogicalToDeviceUnits(140), ReadOnly = true });
 			_grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Description", HeaderText = "Description", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, ReadOnly = true });
+			_screensColumn = new DataGridViewTextBoxColumn { HeaderText = "Screens", AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells, ReadOnly = true };
+			_grid.Columns.Add(_screensColumn);
+			_grid.CellFormatting += Grid_CellFormatting;
 			GridStyle.Apply(_grid);
 
 			_grid.CellDoubleClick += (s, e) => { if (e.RowIndex >= 0 && e.ColumnIndex > 1) { EditProvider(e.RowIndex); } };
@@ -76,8 +88,88 @@ namespace DMT.Modules.WallpaperChanger
 			FillControl = Add(new CardFrame(_grid), 12);
 			FillMinHeight = 200;
 
+			// how much the selected source is used on each screen
+			_screensHeader = AddHeader("Screens");
+			_screensText = AddText(string.Empty);
+			BuildScreenCards();
+
 			_grid.DataSource = _wallpaperChangerModule.GetProvidersDataSource();
 			UpdateButtons();
+		}
+
+		void BuildScreenCards()
+		{
+			string[] names = MonitorDescriptions.GetNames();
+			for (int i = 0; i < Monitor.AllMonitors.Count; i++)
+			{
+				int screenIndex = i;
+				Slider slider = new Slider { Minimum = 0, Maximum = 100, SmallChange = 5, LargeChange = 25, AccessibleName = string.Format("Use on screen {0}", i + 1) };
+				TextBlock value = new TextBlock("100%", TextRole.Body) { Wrap = false };
+				value.WithLogicalWidth(44);
+				value.Height = LogicalToDeviceUnits(24);
+				slider.ValueChanged += (s, e) =>
+				{
+					value.Text = slider.Value + "%";
+					if (!_loadingShares && _selectedProvider != null)
+					{
+						ProviderScreenShares.Set(_selectedProvider, screenIndex, slider.Value);
+						_shareChanged = true;
+						_grid.AutoResizeColumn(_screensColumn.Index);
+						_grid.InvalidateColumn(_screensColumn.Index);
+					}
+				};
+
+				// save once the user has finished with the slider, rather than on every step
+				slider.MouseUp += (s, e) => SaveShares();
+				slider.KeyUp += (s, e) => SaveShares();
+				slider.LostFocus += (s, e) => SaveShares();
+
+				string title = string.IsNullOrEmpty(names[i]) ? string.Format("Screen {0}", i + 1) : string.Format("Screen {0} · {1}", i + 1, names[i]);
+				SettingsCard card = AddCard(title, null, Theme.GlyphMonitor, new HStack(slider, value) { Spacing = 12 });
+				_screenSliders.Add(slider);
+				_screenCards.Add(card);
+			}
+		}
+
+		void SaveShares()
+		{
+			if (_shareChanged)
+			{
+				_shareChanged = false;
+				_wallpaperChangerModule.SaveProvidersConfiguration();
+			}
+		}
+
+		void ShowScreenShares()
+		{
+			_selectedProvider = _grid.SelectedRows.Count == 1 ? _grid.SelectedRows[0].DataBoundItem as IImageProvider : null;
+			bool show = _selectedProvider != null;
+			_screensText.Text = show
+				? string.Format("How often \"{0}\" is used on each screen, compared with its usual weight. " +
+					"A screen that no source is used on picks from all of them.", _selectedProvider.Description)
+				: "Select a source to choose which screens it's used on.";
+
+			_loadingShares = true;
+			for (int i = 0; i < _screenSliders.Count; i++)
+			{
+				_screenCards[i].Visible = show;
+				_screenSliders[i].Value = show ? ProviderScreenShares.Get(_selectedProvider, i) : 100;
+			}
+
+			_loadingShares = false;
+		}
+
+		void Grid_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+		{
+			if (e.ColumnIndex == _screensColumn.Index && e.RowIndex >= 0)
+			{
+				IImageProvider provider = _grid.Rows[e.RowIndex].DataBoundItem as IImageProvider;
+				if (provider != null)
+				{
+					e.Value = ProviderScreenShares.Describe(provider, Monitor.AllMonitors.Count);
+					e.FormattingApplied = true;
+				}
+			}
 		}
 
 		public override void ApplyTheme()
@@ -90,6 +182,8 @@ namespace DMT.Modules.WallpaperChanger
 		{
 			_editButton.Enabled = _grid.SelectedRows.Count == 1;
 			_deleteButton.Enabled = _grid.SelectedRows.Count > 0;
+			SaveShares();
+			ShowScreenShares();
 		}
 
 		void AddButton_Click(object sender, EventArgs e)

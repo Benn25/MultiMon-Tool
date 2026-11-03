@@ -253,6 +253,15 @@ namespace DMT.Modules.WallpaperChanger.Plugins.List
 
 						providerImage.MoreInfo = providerImage.Image.GetExifDescription();
 						providerImage.Photographer = providerImage.Image.GetExifPhotographer();
+
+						// the user may have chosen which part of the picture to keep when it's cropped
+						// (the focus is along the longer side of the (upright) picture)
+						float? focus = _list.FocusAt(posn);
+						if (focus.HasValue)
+						{
+							bool landscape = providerImage.Image.Width >= providerImage.Image.Height;
+							providerImage.Focus = landscape ? new PointF(focus.Value, 0.5f) : new PointF(0.5f, focus.Value);
+						}
 					}
 				}
 				catch (Exception ex)

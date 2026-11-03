@@ -90,6 +90,33 @@ namespace DMT.Library.Wallpaper
 			return virtualDestRect;
 		}
 
+		/// <summary>
+		/// When the image overflows the target (i.e. it has been cropped to fill it),
+		/// moves it so that the focus point is as close to the middle of the target as possible,
+		/// without uncovering any of the target.
+		/// </summary>
+		/// <param name="virtualDestRect">Where the whole image would be drawn</param>
+		/// <param name="targetRect">The area being filled</param>
+		/// <param name="focus">Point of the image to keep central, as fractions of its width and height</param>
+		/// <returns>The adjusted position of the image</returns>
+		public static Rectangle ApplyFocus(Rectangle virtualDestRect, Rectangle targetRect, PointF focus)
+		{
+			Rectangle rect = virtualDestRect;
+			if (rect.Width > targetRect.Width)
+			{
+				int left = targetRect.Left + targetRect.Width / 2 - (int)Math.Round(focus.X * rect.Width);
+				rect.X = Math.Max(targetRect.Right - rect.Width, Math.Min(targetRect.Left, left));
+			}
+
+			if (rect.Height > targetRect.Height)
+			{
+				int top = targetRect.Top + targetRect.Height / 2 - (int)Math.Round(focus.Y * rect.Height);
+				rect.Y = Math.Max(targetRect.Bottom - rect.Height, Math.Min(targetRect.Top, top));
+			}
+
+			return rect;
+		}
+
 		public static Rectangle FitImage(Size imageSize, StretchType.Fit fit, Rectangle targetRect)
 		{
 			Rectangle virtualDestRect = Rectangle.Empty;

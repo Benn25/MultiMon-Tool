@@ -13,7 +13,21 @@ namespace DMT.Modules.WallpaperChanger.Plugins.List
 	{
 		string _listFnm;
 		List<string> _imagePaths;
+		List<float?> _focus;
 		DateTime _lastUpdateTime;
+
+		/// <summary>
+		/// Gets the focus point (along the image's longer side) for the picture, or null for the middle
+		/// </summary>
+		public float? FocusAt(int idx)
+		{
+			if (_focus != null && idx >= 0 && idx < _focus.Count)
+			{
+				return _focus[idx];
+			}
+
+			return null;
+		}
 
 		public int Count
 		{
@@ -147,14 +161,16 @@ namespace DMT.Modules.WallpaperChanger.Plugins.List
 				string[] allLines = File.ReadAllLines(_listFnm);
 
 				_imagePaths = new List<string>(allLines.Length);
+				_focus = new List<float?>(allLines.Length);
 
 				// we allow blank lines and comments starting with '#', so filter these out
 				foreach (string line in allLines)
 				{
-					string cleanedLine = line.Trim();
-					if (!string.IsNullOrEmpty(cleanedLine) && cleanedLine[0] != '#')
+					PictureListEntry entry;
+					if (PictureListFile.TryParse(line, out entry))
 					{
-						_imagePaths.Add(cleanedLine);
+						_imagePaths.Add(entry.Path);
+						_focus.Add(entry.Focus);
 					}
 				}
 			}

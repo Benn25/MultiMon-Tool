@@ -58,6 +58,7 @@ namespace DMT.Modules.WallpaperChanger
 			XmlTextReader reader = new XmlTextReader(stream);
 
 			string curName = null;
+			string curScreens = null;
 			Dictionary<string, string> curConfig = null;
 
 			while (reader.Read())
@@ -68,6 +69,7 @@ namespace DMT.Modules.WallpaperChanger
 					if (reader.LocalName == "provider")
 					{
 						curName = reader.GetAttribute("name");
+						curScreens = reader.GetAttribute("screens");
 						curConfig = new Dictionary<string, string>();
 					}
 					else if (reader.LocalName == "config")
@@ -90,6 +92,7 @@ namespace DMT.Modules.WallpaperChanger
 						IImageProvider provider = _providerFactory.CreateProvider(curName, curConfig);
 						if (provider != null)
 						{
+							ProviderScreenShares.FromSetting(provider, curScreens);
 							providers.Add(provider);
 						}
 
