@@ -75,6 +75,7 @@ namespace DMT.Modules.Cursor
 		CursorHooks _cursorHooks;
 
 		CursorPrimaryOptionsPanel _cursorPrimaryOptionsPanel;
+		CursorDeskOptionsPanel _cursorDeskOptionsPanel;
 
 		public int MinForce { get; private set; }
 
@@ -473,6 +474,69 @@ namespace DMT.Modules.Cursor
 		StringSetting PrimaryGroupNumsSetting { get; set; }
 		StringSetting PrimaryGroupNamesSetting { get; set; }
 
+		BoolSetting DeskLayoutEnabledSetting { get; set; }
+		StringSetting DeskLayoutSetting { get; set; }
+
+		// read by the mouse hook, so only ever replaced as a whole
+		volatile DeskCursorMapper _deskMapper;
+
+		/// <summary>
+		/// Gets the mapper for moving the cursor between screens as they are arranged on the desk,
+		/// or null if this is turned off
+		/// </summary>
+		public DeskCursorMapper DeskMapper
+		{
+			get { return _deskMapper; }
+		}
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the cursor crosses between screens where they physically meet on the desk
+		/// </summary>
+		public bool DeskLayoutEnabled
+		{
+			get
+			{
+				return DeskLayoutEnabledSetting.Value;
+			}
+
+			set
+			{
+				DeskLayoutEnabledSetting.Value = value;
+				UpdateDeskMapper(GetDeskLayout());
+				ReflectNewCursorOptions();
+			}
+		}
+
+		/// <summary>
+		/// Gets the arrangement of the current screens on the desk
+		/// </summary>
+		public DeskLayout GetDeskLayout()
+		{
+			return DeskLayout.ForCurrentMonitors(DeskLayoutSetting.Value);
+		}
+
+		/// <summary>
+		/// Saves the arrangement of the screens on the desk, and starts using it
+		/// </summary>
+		public void SaveDeskLayout(DeskLayout layout)
+		{
+			DeskLayoutSetting.Value = layout.ToSetting(DeskLayoutSetting.Value);
+			UpdateDeskMapper(layout);
+		}
+
+		void UpdateDeskMapper(DeskLayout layout)
+		{
+			try
+			{
+				_deskMapper = DeskLayoutEnabled && layout.Screens.Count > 1 ? layout.CreateMapper() : null;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException("DeskLayout", ex);
+				_deskMapper = null;
+			}
+		}
+
 		/// <summary>
 		/// Gets the option nodes for this module
 		/// </summary>
@@ -488,6 +552,9 @@ namespace DMT.Modules.Cursor
 			options.Nodes.Add(new ModuleOptionNodeLeaf("Primary Working Area", image, _cursorPrimaryOptionsPanel));
 
 			options.Nodes.Add(new ModuleOptionNodeLeaf("Dead Space", image, new CursorDeadSpaceOptionsPanel(this)));
+
+			_cursorDeskOptionsPanel = new CursorDeskOptionsPanel(this);
+			options.Nodes.Add(new ModuleOptionNodeLeaf("Desk Layout", image, _cursorDeskOptionsPanel));
 
 			return options;
 		}
@@ -528,6 +595,13 @@ namespace DMT.Modules.Cursor
 			PrimaryGroupNamesSetting = new StringSetting(_settingsService, ModuleName, "PrimaryGroupNames");
 			UpdatePrimaryGroupFromSetting();
 
+			DeskLayoutEnabledSetting = new BoolSetting(_settingsService, ModuleName, "DeskLayoutEnabled");
+			DeskLayoutSetting = new StringSetting(_settingsService, ModuleName, "DeskLayout");
+			if (DeskLayoutEnabled)
+			{
+				UpdateDeskMapper(GetDeskLayout());
+			}
+
 			_cursorHooks.Start();
 			InitCursorMode(DefaultCursorMode);
 		}
@@ -548,6 +622,18 @@ namespace DMT.Modules.Cursor
 		/// </summary>
 		public override void DisplayResolutionChanged()
 		{
+			// the screens' pixel positions have changed (or a screen has come or gone)
+			if (DeskLayoutEnabled)
+			{
+				UpdateDeskMapper(GetDeskLayout());
+				ReflectNewCursorOptions();
+			}
+
+			if (_cursorDeskOptionsPanel != null)
+			{
+				_cursorDeskOptionsPanel.Reload();
+			}
+
 			ReBuildBarriers();
 
 			// also update the primary working area panel

@@ -66,6 +66,7 @@ namespace DMT.Modules.Cursor
 		CursorBarrierLower _topBarrier = new CursorBarrierLower(false, 0, 0);
 		CursorBarrierUpper _bottomBarrier = new CursorBarrierUpper(false, 0, 0);
 
+
 		#region Interface used by CursorModule
 		public CursorHooks(CursorModule cursorModule)
 		{
@@ -423,6 +424,43 @@ namespace DMT.Modules.Cursor
 				return true;
 			}
 
+			if (_cursorModule.DeskMapper != null)
+			{
+				// need mouse hook to move the cursor to the matching place on the next screen
+				return true;
+			}
+
+			return false;
+		}
+
+		/// <summary>
+		/// If the cursor is leaving the screen it's on, moves it to the same physical place on the next screen
+		/// (from how the screens are arranged on the desk)
+		/// </summary>
+		/// <returns>true if the cursor position was changed</returns>
+		bool MapToDesk(ref int x, ref int y)
+		{
+			DeskCursorMapper mapper = _cursorModule.DeskMapper;
+			if (mapper == null)
+			{
+				return false;
+			}
+
+			// where the cursor is now (before this movement)
+			NativeMethods.POINT current;
+			if (!NativeMethods.GetCursorPos(out current))
+			{
+				return false;
+			}
+
+			Point result;
+			if (mapper.TryMap(mapper.ScreenAt(new Point(current.x, current.y)), new Point(x, y), out result))
+			{
+				x = result.X;
+				y = result.Y;
+				return true;
+			}
+
 			return false;
 		}
 
@@ -643,6 +681,7 @@ namespace DMT.Modules.Cursor
 				}
 
 				bool useBarrier = true;
+				bool mappedToDesk = false;
 
 				if (_cursorModule.CursorLockedToMonitor)
 				{
@@ -718,16 +757,19 @@ namespace DMT.Modules.Cursor
 						brokenThroughY = true;
 					}
 
-					if (_cursorModule.AllowDeadSpaceXJump && brokenThroughX)
+					// the desk layout takes precedence over jumping dead space
+					// (checked on every move, as the barriers are out of date if something else has moved the cursor)
+					mappedToDesk = MapToDesk(ref x, ref y);
+					if (!mappedToDesk && _cursorModule.AllowDeadSpaceXJump && brokenThroughX)
 					{
 						JumpToNearestValidY(x, ref y);
 					}
-					if (_cursorModule.AllowDeadSpaceYJump && brokenThroughY)
+					if (!mappedToDesk && _cursorModule.AllowDeadSpaceYJump && brokenThroughY)
 					{
 						JumpToNearestValidX(ref x, y);
 					}
 
-					if (brokenThroughX || brokenThroughY)
+					if (brokenThroughX || brokenThroughY || mappedToDesk)
 					{
 						ReBuildBarriers(new Point(x, y));
 					}
@@ -736,12 +778,21 @@ namespace DMT.Modules.Cursor
 				{
 					// cursor is free to move between screens, 
 					// but still need to check if the screen that it is on has changed
+					mappedToDesk = MapToDesk(ref x, ref y);
 					bool outsideX = _leftBarrier.Outside(x) || _rightBarrier.Outside(x);
 					bool outsideY = _topBarrier.Outside(y) || _bottomBarrier.Outside(y);
-					if (outsideX || outsideY)
+					if (outsideX || outsideY || mappedToDesk)
 					{
 						ReBuildBarriers(new Point(x, y));
 					}
+				}
+
+				if (mappedToDesk)
+				{
+					// move it straight away (rather than via the UI thread), otherwise the next few mouse movements
+					// would still be from the old screen and would be mapped straight back again
+					NativeMethods.SetCursorPos(x, y);
+					return 1;
 				}
 
 				if (x != originalX || y != originalY)
