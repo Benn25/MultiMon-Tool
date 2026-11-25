@@ -39,6 +39,7 @@ namespace DMT.Library.WallpaperPlugin
 		{
 			Image = image;
 			AutoRotate(Image);
+			ImageSize = image.Size;
 		}
 
 		~ProviderImage()
@@ -50,6 +51,12 @@ namespace DMT.Library.WallpaperPlugin
 		/// Gets or sets the image
 		/// </summary>
 		public Image Image { get; protected set; }
+
+		/// <summary>
+		/// Gets the size of the image (after any rotation).
+		/// Use this rather than Image.Size from the UI, as the image may be in use by the thread making the wallpaper.
+		/// </summary>
+		public Size ImageSize { get; private set; }
 
 		/// <summary>
 		/// Gets or sets the point of the image (as fractions of its width and height)

@@ -77,7 +77,7 @@ namespace DMT.Modules.WallpaperChanger
 				return;
 			}
 
-			Image sourceImage = _wallpaperChangerModule.Desktop.CurrentWallpaperImage;
+			Image sourceImage = _wallpaperChangerModule.Desktop.GetWallpaperPreview();
 			IWallpaperCompositor compositor = _wallpaperChangerModule.Desktop.CurrentCompositor;
 			_preview.SetWallpaper(sourceImage, compositor);
 			_hint.Text = sourceImage != null && compositor != null
@@ -124,7 +124,7 @@ namespace DMT.Modules.WallpaperChanger
 			ShowLink(_sourceCard, providerImage.Source, providerImage.SourceUrl);
 			ShowLink(_photographerCard, providerImage.Photographer, providerImage.PhotographerUrl);
 			ShowLink(_detailsCard, providerImage.MoreInfo, providerImage.MoreInfoUrl);
-			_sizeCard.Description = providerImage.Image != null ? string.Format("{0} × {1}", providerImage.Image.Width, providerImage.Image.Height) : "—";
+			_sizeCard.Description = !providerImage.ImageSize.IsEmpty ? string.Format("{0} × {1}", providerImage.ImageSize.Width, providerImage.ImageSize.Height) : "—";
 		}
 
 		static void ShowLink(SettingsCard card, string text, string url)
@@ -154,8 +154,16 @@ namespace DMT.Modules.WallpaperChanger
 
 			public int SelectedScreen { get; private set; }
 
+			/// <summary>
+			/// Shows the wallpaper (the preview takes ownership of the image)
+			/// </summary>
 			public void SetWallpaper(Image image, IWallpaperCompositor compositor)
 			{
+				if (_image != null && _image != image)
+				{
+					_image.Dispose();
+				}
+
 				_image = image;
 				_compositor = compositor;
 				if (_scaled != null)
@@ -187,6 +195,12 @@ namespace DMT.Modules.WallpaperChanger
 				if (disposing && _scaled != null)
 				{
 					_scaled.Dispose();
+				}
+
+				if (disposing && _image != null)
+				{
+					_image.Dispose();
+					_image = null;
 				}
 
 				base.Dispose(disposing);

@@ -62,15 +62,21 @@ namespace DMT.Modules.WallpaperChanger
 			_compositorFactory = compositorFactory;
 		}
 
+		// a small copy of the wallpaper for the options to show
+		// (they can't use _currentWallpaperImage, as the next update may dispose it while they're drawing it)
+		readonly object _previewLock = new object();
+		Image _previewImage = null;
+
 		/// <summary>
-		/// Gets the current wallpaper image
+		/// Gets a copy of a reduced size version of the current wallpaper (or null if there isn't one yet).
+		/// The caller owns the copy, and should dispose it.
 		/// </summary>
-		public Image CurrentWallpaperImage 
-		{ 
-			get 
-			{ 
-				return _currentWallpaperImage; 
-			} 
+		public Image GetWallpaperPreview()
+		{
+			lock (_previewLock)
+			{
+				return _previewImage != null ? (Image)_previewImage.Clone() : null;
+			}
 		}
 
 		/// <summary>
@@ -290,6 +296,31 @@ namespace DMT.Modules.WallpaperChanger
 			}
 
 			_currentWallpaperImage = wallpaper;
+
+			Image preview = CreatePreview(wallpaper);
+			lock (_previewLock)
+			{
+				if (_previewImage != null)
+				{
+					_previewImage.Dispose();
+				}
+
+				_previewImage = preview;
+			}
+		}
+
+		static Image CreatePreview(Image wallpaper)
+		{
+			const int MaxSize = 1600;
+			float scale = Math.Min(1f, (float)MaxSize / Math.Max(wallpaper.Width, wallpaper.Height));
+			Bitmap preview = new Bitmap(Math.Max(1, (int)(wallpaper.Width * scale)), Math.Max(1, (int)(wallpaper.Height * scale)));
+			using (Graphics g = Graphics.FromImage(preview))
+			{
+				g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+				g.DrawImage(wallpaper, 0, 0, preview.Width, preview.Height);
+			}
+
+			return preview;
 		}
 
 		void ShowWallpaperImage()
